@@ -1,0 +1,17 @@
+{
+	"description": "splunklog as plugin",
+	"documentation": "-",
+	"entrypoint": ["/usr/bin/splunk-log-driver"],
+	"interface": {
+		"types": ["docker.logdriver/1.0"],
+		"socket": "jsonfile.sock"
+	},
+	"env": [
+		{
+			"name": "LOG_LEVEL",
+			"description": "Set log level to output for plugin logs",
+			"value": "info",
+			"settable": ["value"]
+		}
+	]
+}
