@@ -1,13 +1,10 @@
 {
-	"description": "splunklog as plugin",
+	"description": "splunk logging driver as plugin",
 	"documentation": "-",
 	"entrypoint": ["/usr/bin/splunk-log-driver"],
     "network": {
         "type": "host"
     },
-	"linux": {
-		"capabilities": ["CAP_SYS_ADMIN"]
-	},
 	"interface": {
 		"types": ["docker.logdriver/1.0"],
 		"socket": "splunklog.sock"
