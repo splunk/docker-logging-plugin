@@ -1,26 +1,12 @@
-// Package splunk provides the log driver for forwarding server logs to
-// Splunk HTTP Event Collector endpoint.
 package main
 
 import (
-	//"bytes"
-	//"compress/gzip"
-	//"crypto/tls"
-	//"crypto/x509"
-	//"encoding/json"
 	"fmt"
-	//"io"
-	//"io/ioutil"
-	//"net/http"
-	//"net/url"
 	"os"
-	//"strconv"
-	//"sync"
-	//"time"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/go-plugins-helpers/sdk"
 )
-
 
 var logLevels = map[string]logrus.Level{
 	"debug": logrus.DebugLevel,
@@ -41,19 +27,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Fprintln(os.Stderr, "Not implemented yet...")
-	os.Exit(1)
+	h := sdk.NewHandler(`{"Implements": ["LoggingDriver"]}`)
+	handlers(&h, newDriver())
+	if err := h.ServeUnix("splunklog", 0); err != nil {
+		panic(err)
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
