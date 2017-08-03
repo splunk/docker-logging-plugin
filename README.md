@@ -1,11 +1,11 @@
 # Splunk log driver
 
-Splunk log driver is a docker plugin that allows docker containers to send its logs directly to a Splunk driver.
+Splunk log driver is a docker plugin that allows docker containers to send its logs directly to a Splunk server.
 
 ## Getting Started
 
-You can build this project whereever Docker engine is installed to a pretty recent version (>1.3). 
-Please, have a look at [Docker plugin documentation](https://docs.docker.com/engine/extend/#debugging-plugins)
+You need to install a recent version of Docker Engine at least Docker Engine 1.12. 
+Please, have a look at [Docker plugin documentation](https://docs.docker.com/engine/extend/#debugging-plugins) for more information about Docker plugin.
 
 
 ### Prerequisites
@@ -13,7 +13,7 @@ Please, have a look at [Docker plugin documentation](https://docs.docker.com/eng
 So, you need install on your machine 
 
 ```
-docker
+docker 	
 make
 ```
 
@@ -25,7 +25,7 @@ To compile and install the plugin driver, just run
 make && make enable
 ```
 
-This command will pull the docker image and build the new docker image and extract the plugin. 
+This command will pull the docker image and build the splunk-driver in this docker container and then create the plugin from this container by extracting the rootfs and config.json in the folder plugin and finally the folder plugin will be converted to a docker plugin.
 
 
 ### Running a docker image
