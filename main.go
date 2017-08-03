@@ -8,6 +8,8 @@ import (
 	"github.com/docker/go-plugins-helpers/sdk"
 )
 
+const socketAddress = "/run/docker/plugins/splunklog.sock"
+
 var logLevels = map[string]logrus.Level{
 	"debug": logrus.DebugLevel,
 	"info":  logrus.InfoLevel,
@@ -29,7 +31,7 @@ func main() {
 
 	h := sdk.NewHandler(`{"Implements": ["LoggingDriver"]}`)
 	handlers(&h, newDriver())
-	if err := h.ServeUnix("splunklog", 0); err != nil {
+	if err := h.ServeUnix(socketAddress, 0); err != nil {
 		panic(err)
 	}
 }
