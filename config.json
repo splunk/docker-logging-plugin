@@ -1,7 +1,7 @@
 {
-	"description": "splunk logging driver as plugin",
+	"description": "splunk logging plugin",
 	"documentation": "-",
-	"entrypoint": ["/usr/bin/splunk-log-driver"],
+	"entrypoint": ["/usr/bin/splunk-log-plugin"],
     "network": {
         "type": "host"
     },

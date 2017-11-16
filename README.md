@@ -6,7 +6,7 @@ Cloud deployment, or to a SplunkNova account.
 ## Getting Started
 
 You need to install Docker Engine >= 1.12.
- 
+
 Additional information about Docker plugins [can be found here.](https://docs.docker.com/engine/extend/plugins_logging/)
 
 
@@ -17,7 +17,7 @@ For development, you can clone and run make
 ```
 git clone git@github.com:splunk/docker-logging-plugin.git
 cd docker-logging-plugin
-make 
+make
 ```
 
 ### Installing
@@ -25,7 +25,7 @@ make
 To install the plugin, you can run
 
 ```
-docker plugin install splunk/docker-logging-driver:next --alias splunk
+docker plugin install splunk/docker-logging-driver:latest --alias splunk
 docker plugin ls
 ```
 
