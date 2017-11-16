@@ -29,11 +29,13 @@ import (
 	protoio "github.com/gogo/protobuf/io"
 	"github.com/pkg/errors"
 	"github.com/tonistiigi/fifo"
+	"strings"
 )
 
 const (
 	driverName                    = "splunk"
 	splunkURLKey                  = "splunk-url"
+	splunkURLPathKey              = "splunk-url-path"
 	splunkTokenKey                = "splunk-token"
 	splunkSourceKey               = "splunk-source"
 	splunkSourceTypeKey           = "splunk-sourcetype"
@@ -106,6 +108,12 @@ type splunkLoggerInline struct {
 	nullEvent *splunkMessageEvent
 }
 
+type splunkLoggerNova struct {
+	*splunkLogger
+
+	prefix []byte
+}
+
 type splunkLoggerJSON struct {
 	*splunkLoggerInline
 }
@@ -123,6 +131,7 @@ type splunkMessage struct {
 	Source     string      `json:"source,omitempty"`
 	SourceType string      `json:"sourcetype,omitempty"`
 	Index      string      `json:"index,omitempty"`
+	Entity     string      `json:"entity,omitempty"`
 }
 
 type splunkMessageEvent struct {
@@ -136,6 +145,7 @@ const (
 	splunkFormatRaw    = "raw"
 	splunkFormatJSON   = "json"
 	splunkFormatInline = "inline"
+	splunkFormatNova   = "nova"
 )
 
 // New creates splunk logger driver using configuration passed in context
@@ -282,8 +292,9 @@ func New(info logger.Info) (logger.Logger, error) {
 		case splunkFormatInline:
 		case splunkFormatJSON:
 		case splunkFormatRaw:
+		case splunkFormatNova:
 		default:
-			return nil, fmt.Errorf("Unknown format specified %s, supported formats are inline, json and raw", splunkFormat)
+			return nil, fmt.Errorf("Unknown format specified %s, supported formats are inline, json, raw, and nova", splunkFormat)
 		}
 		splunkFormat = splunkFormatParsed
 	} else {
@@ -321,6 +332,20 @@ func New(info logger.Info) (logger.Logger, error) {
 		}
 
 		loggerWrapper = &splunkLoggerRaw{logger, prefix.Bytes()}
+	case splunkFormatNova:
+		var prefix bytes.Buffer
+		if tag != "" {
+			prefix.WriteString(tag)
+			prefix.WriteString(" ")
+		}
+		for key, value := range attrs {
+			prefix.WriteString(key)
+			prefix.WriteString("=")
+			prefix.WriteString(value)
+			prefix.WriteString(" ")
+		}
+
+		loggerWrapper = &splunkLoggerNova{logger, prefix.Bytes()}
 	default:
 		return nil, fmt.Errorf("Unexpected format %s", splunkFormat)
 	}
@@ -338,6 +363,16 @@ func (l *splunkLoggerInline) Log(msg *logger.Message) error {
 	event.Source = msg.Source
 
 	message.Event = &event
+	logger.PutMessage(msg)
+	return l.queueMessageAsync(message)
+}
+
+func (l *splunkLoggerNova) Log(msg *logger.Message) error {
+	message := l.createSplunkMessage(msg)
+	message.Entity = message.Host
+	message.Source = message.Source
+
+	message.Event = string(append(l.prefix, msg.Line...))
 	logger.PutMessage(msg)
 	return l.queueMessageAsync(message)
 }
@@ -478,6 +513,7 @@ func (l *splunkLogger) tryPostMessages(messages []*splunkMessage) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", l.auth)
 	// Tell if we are sending gzip compressed body
 	if l.gzipCompression {
@@ -528,6 +564,7 @@ func ValidateLogOpt(cfg map[string]string) error {
 	for key := range cfg {
 		switch key {
 		case splunkURLKey:
+		case splunkURLPathKey:
 		case splunkTokenKey:
 		case splunkSourceKey:
 		case splunkSourceTypeKey:
@@ -569,7 +606,16 @@ func parseURL(info logger.Info) (*url.URL, error) {
 		return nil, fmt.Errorf("%s: expected format scheme://dns_name_or_ip:port for %s", driverName, splunkURLKey)
 	}
 
-	splunkURL.Path = "/services/collector/event/1.0"
+	splunkURLPathStr, ok := info.Config[splunkURLPathKey]
+	if !ok {
+		splunkURL.Path = "/services/collector/event/1.0"
+	} else {
+		if strings.HasPrefix(splunkURLPathStr, "/") {
+			splunkURL.Path = splunkURLPathStr
+		} else {
+			return nil, fmt.Errorf("%s: expected format /path/to/collector for %s", driverName, splunkURLPathKey)
+		}
+	}
 
 	return splunkURL, nil
 }

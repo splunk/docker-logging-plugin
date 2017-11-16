@@ -1,49 +1,71 @@
-# Splunk log driver
+# Splunk Log-driver plugin for Docker
 
-Splunk log driver is a docker plugin that allows docker containers to send its logs directly to a Splunk server.
+Splunk logging plugin allows docker containers to send their logs directly to a Splunk Enterprise service, a Splunk
+Cloud deployment, or to a SplunkNova account.
 
 ## Getting Started
 
-You need to install a recent version of Docker Engine at least Docker Engine 1.12. 
-Please, have a look at [Docker plugin documentation](https://docs.docker.com/engine/extend/#debugging-plugins) for more information about Docker plugin.
+You need to install Docker Engine >= 1.12.
+ 
+Additional information about Docker plugins [can be found here.](https://docs.docker.com/engine/extend/plugins_logging/)
 
 
-### Prerequisites
+### Developing
 
-So, you need install on your machine 
-
-```
-docker 	
-make
-```
-
-### Compiling and Installing
-
-To compile and install the plugin driver, just run 
+For development, you can clone and run make
 
 ```
-make && make enable
+git clone git@github.com:splunk/docker-logging-plugin.git
+cd docker-logging-plugin
+make 
 ```
 
-This command will pull the docker image and build the splunk-driver in this docker container and then create the plugin from this container by extracting the rootfs and config.json in the folder plugin and finally the folder plugin will be converted to a docker plugin.
+### Installing
 
-
-### Running a docker image
-
-The plugin is using the same parameters as the splunk driver, please have a look at [splunk driver documentation](https://docs.docker.com/engine/admin/logging/splunk/) 
-to know what parameters to use
+To install the plugin, you can run
 
 ```
-$ docker run --log-driver=splunk-log-driver:next \
-           --log-opt splunk-token=176FCEBF-4CF5-4EDF-91BC-703796522D20 \
-           --log-opt splunk-url=https://splunkhost:8088 \
-           --log-opt splunk-capath=/path/to/cert/cacert.pem \
-           --log-opt splunk-caname=SplunkServerDefaultCert \
-           --log-opt tag="{{.Name}}/{{.FullID}}" \
-           --log-opt labels=location \
-           --log-opt env=TEST \
-           --env "TEST=false" \
-           --label location=west \
-       your/application
+docker plugin install splunk/docker-logging-driver:next --alias splunk
+docker plugin ls
+```
+
+This command will pull and enable the plugin
+
+### Using
+
+The plugin uses the same parameters as the [splunk logging driver](https://docs.docker.com/engine/admin/logging/splunk/).
+
+
+#### Splunk Enterprise Example
 
 ```
+$ docker run --log-driver=splunk \
+             --log-opt splunk-url=https://your-splunkhost:8088 \
+             --log-opt splunk-token=176FCEBF-4CF5-4EDF-91BC-703796522D20 \
+             --log-opt splunk-capath=/path/to/cert/cacert.pem \
+             --log-opt splunk-caname=SplunkServerDefaultCert \
+             --log-opt tag="{{.Name}}/{{.FullID}}" \
+             --log-opt labels=location \
+             --log-opt env=TEST \
+             --env "TEST=false" \
+             --label location=west \
+             -it ubuntu bash
+
+```
+
+#### SplunkNova Example
+
+Once you make an account on www.splunknova.com, you can grab your API credentials and use them here.
+
+```
+$ docker run --log-driver=splunk \
+             --log-opt splunk-url=https://api.splunknova.com:443 \
+             --log-opt splunk-token=<YOUR BASE64 ENCODED API KEYS> \
+             --log-opt splunk-url-path='/v1/events' \
+             --log-opt tag="{{.Name}}/{{.FullID}}" \
+             --log-opt splunk-format=nova \
+             --log-opt splunk-verify-connection=false \
+             --log-opt splunk-source='docker-logging' \
+             -it ubuntu bash
+```
+

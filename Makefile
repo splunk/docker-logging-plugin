@@ -9,7 +9,7 @@ clean:
 
 docker:
 	@echo "### docker build: builder image"
-	@docker build -q -t builder -f Dockerfile .
+	@docker build -t builder -f Dockerfile .
 	@echo "### extract splunk-log-driver"
 	@docker create --name tmp builder
 	@docker cp tmp:/go/bin/splunk-log-driver .
