@@ -5,27 +5,20 @@ all: clean docker rootfs create
 
 clean:
 	@echo "### rm ./plugin"
-	rm -rf ./plugin splunk-log-plugin
+	rm -rf ./plugin
 
 docker:
-	@echo "### docker build: builder image"
-	docker build -t builder -f Dockerfile .
-	@echo "### extract splunk-log-plugin"
-	docker create --name tmp builder
-	docker cp tmp:/go/bin/splunk-log-plugin .
-	docker rm -vf tmp
-	docker rmi builder
 	@echo "### docker build: rootfs image with splunk-log-plugin"
-	docker build -q -t ${PLUGIN_NAME}:rootfs .
+	docker build -t ${PLUGIN_NAME}:rootfs .
 
 rootfs:
 	@echo "### create rootfs directory in ./plugin/rootfs"
 	mkdir -p ./plugin/rootfs
-	docker create --name tmp ${PLUGIN_NAME}:rootfs
-	docker export tmp | tar -x -C ./plugin/rootfs
+	docker create --name tmprootfs ${PLUGIN_NAME}:rootfs
+	docker export tmprootfs | tar -x -C ./plugin/rootfs
 	@echo "### copy config.json to ./plugin/"
 	cp config.json ./plugin/
-	docker rm -vf tmp
+	docker rm -vf tmprootfs
 
 create:
 	@echo "### remove existing plugin ${PLUGIN_NAME}:${PLUGIN_TAG} if exists"
