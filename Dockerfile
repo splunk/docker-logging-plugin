@@ -1,6 +1,16 @@
-FROM  golang:1.7
+FROM  golang:1.9.2
 
-COPY . /go/src/github.com/splunk/splunk-log-plugin
+WORKDIR /go/src/github.com/splunk/splunk-log-plugin/
 
-#We are trying to compile statically but actually we are failing miserably because of our GO package dependencies
-RUN cd /go/src/github.com/splunk/splunk-log-plugin && go get && go build --ldflags '-extldflags "-static"' -o /usr/bin/splunk-log-plugin
+COPY . /go/src/github.com/splunk/splunk-log-plugin/
+
+
+RUN cd /go/src/github.com/splunk/splunk-log-plugin && go get
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /bin/splunk-log-plugin .
+
+FROM alpine:3.7
+RUN apk --no-cache add ca-certificates
+COPY --from=0 /bin/splunk-log-plugin /bin/
+WORKDIR /bin/
+ENTRYPOINT [ "/bin/splunk-log-plugin" ]
