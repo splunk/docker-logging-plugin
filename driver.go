@@ -15,21 +15,24 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
 	"encoding/json"
+	"strings"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types/plugins/logdriver"
 	"github.com/docker/docker/daemon/logger"
+	"github.com/docker/docker/daemon/logger/jsonfilelog"
 	"github.com/docker/docker/daemon/logger/loggerutils"
 	"github.com/docker/docker/pkg/urlutil"
 	protoio "github.com/gogo/protobuf/io"
 	"github.com/pkg/errors"
 	"github.com/tonistiigi/fifo"
-	"strings"
 )
 
 const (
@@ -670,19 +673,23 @@ func getAdvancedOptionInt(envName string, defaultValue int) int {
 }
 
 type driver struct {
-	mu   sync.Mutex
-	logs map[string]*logPair
+	mu     sync.Mutex
+	logs   map[string]*logPair
+	idx    map[string]*logPair
+	logger logger.Logger
 }
 
 type logPair struct {
-	l      logger.Logger
-	stream io.ReadCloser
-	info   logger.Info
+	jsonl   logger.Logger
+	splunkl logger.Logger
+	stream  io.ReadCloser
+	info    logger.Info
 }
 
 func newDriver() *driver {
 	return &driver{
 		logs: make(map[string]*logPair),
+		idx:  make(map[string]*logPair),
 	}
 }
 
@@ -694,12 +701,23 @@ func (d *driver) StartLogging(file string, logCtx logger.Info) error {
 	}
 	d.mu.Unlock()
 
-	err := ValidateLogOpt(logCtx.Config)
+	if logCtx.LogPath == "" {
+		logCtx.LogPath = filepath.Join("/var/log/docker", logCtx.ContainerID)
+	}
+	if err := os.MkdirAll(filepath.Dir(logCtx.LogPath), 0755); err != nil {
+		return errors.Wrap(err, "error setting up logger dir")
+	}
+	jsonl, err := jsonfilelog.New(logCtx)
+	if err != nil {
+		return errors.Wrap(err, "error creating jsonfile logger")
+	}
+
+	err = ValidateLogOpt(logCtx.Config)
 	if err != nil {
 		return errors.Wrapf(err, "error options logger splunk: %q", file)
 	}
 
-	l, err := New(logCtx)
+	splunkl, err := New(logCtx)
 	if err != nil {
 		return errors.Wrap(err, "error creating splunk logger")
 	}
@@ -711,8 +729,9 @@ func (d *driver) StartLogging(file string, logCtx logger.Info) error {
 	}
 
 	d.mu.Lock()
-	lf := &logPair{l, f, logCtx}
+	lf := &logPair{jsonl, splunkl, f, logCtx}
 	d.logs[file] = lf
+	d.idx[logCtx.ContainerID] = lf
 	d.mu.Unlock()
 
 	go consumeLog(lf)
@@ -731,6 +750,20 @@ func (d *driver) StopLogging(file string) error {
 	return nil
 }
 
+func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
+	var msg logger.Message
+	msg.Line = buf.Line
+	msg.Source = buf.Source
+	msg.Partial = buf.Partial
+	msg.Timestamp = time.Unix(0, buf.TimeNano)
+	err := l.Log(&msg)
+	if err != nil {
+		logrus.WithField("id", containerid).WithError(err).WithField("message", msg).Error("error writing log message")
+		return false
+	}
+	return true
+}
+
 func consumeLog(lf *logPair) {
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -744,14 +777,11 @@ func consumeLog(lf *logPair) {
 			}
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-		var msg logger.Message
-		msg.Line = buf.Line
-		msg.Source = buf.Source
-		msg.Partial = buf.Partial
-		msg.Timestamp = time.Unix(0, buf.TimeNano)
 
-		if err := lf.l.Log(&msg); err != nil {
-			logrus.WithField("id", lf.info.ContainerID).WithError(err).WithField("message", msg).Error("error writing log message")
+		if sendMessage(lf.splunkl, &buf, lf.info.ContainerID) == false {
+			continue
+		}
+		if sendMessage(lf.jsonl, &buf, lf.info.ContainerID) == false {
 			continue
 		}
 
@@ -760,5 +790,52 @@ func consumeLog(lf *logPair) {
 }
 
 func (d *driver) ReadLogs(info logger.Info, config logger.ReadConfig) (io.ReadCloser, error) {
-	return nil, fmt.Errorf("splunk logger does not support reading")
+	d.mu.Lock()
+	lf, exists := d.idx[info.ContainerID]
+	d.mu.Unlock()
+	if !exists {
+		return nil, fmt.Errorf("logger does not exist for %s", info.ContainerID)
+	}
+
+	r, w := io.Pipe()
+	lr, ok := lf.jsonl.(logger.LogReader)
+	if !ok {
+		return nil, fmt.Errorf("logger does not support reading")
+	}
+
+	go func() {
+		watcher := lr.ReadLogs(config)
+
+		enc := protoio.NewUint32DelimitedWriter(w, binary.BigEndian)
+		defer enc.Close()
+		defer watcher.Close()
+
+		var buf logdriver.LogEntry
+		for {
+			select {
+			case msg, ok := <-watcher.Msg:
+				if !ok {
+					w.Close()
+					return
+				}
+
+				buf.Line = msg.Line
+				buf.Partial = msg.Partial
+				buf.TimeNano = msg.Timestamp.UnixNano()
+				buf.Source = msg.Source
+
+				if err := enc.WriteMsg(&buf); err != nil {
+					w.CloseWithError(err)
+					return
+				}
+			case err := <-watcher.Err:
+				w.CloseWithError(err)
+				return
+			}
+
+			buf.Reset()
+		}
+	}()
+
+	return r, nil
 }
