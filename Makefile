@@ -1,7 +1,7 @@
 PLUGIN_NAME=splunk-log-plugin
 PLUGIN_TAG=latest
 
-all: clean docker rootfs create
+all: clean docker rootfs create test
 
 clean:
 	@echo "### rm ./plugin"
