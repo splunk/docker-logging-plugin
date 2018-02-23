@@ -751,17 +751,21 @@ func (d *driver) StopLogging(file string) error {
 }
 
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
-	var msg logger.Message
-	msg.Line = buf.Line
-	msg.Source = buf.Source
-	msg.Partial = buf.Partial
-	msg.Timestamp = time.Unix(0, buf.TimeNano)
-	err := l.Log(&msg)
-	if err != nil {
-		logrus.WithField("id", containerid).WithError(err).WithField("message", msg).Error("error writing log message")
+	if len(buf.Line) > 0 {
+		var msg logger.Message
+		msg.Line = buf.Line
+		msg.Source = buf.Source
+		msg.Partial = buf.Partial
+		msg.Timestamp = time.Unix(0, buf.TimeNano)
+		err := l.Log(&msg)
+		if err != nil {
+			logrus.WithField("id", containerid).WithError(err).WithField("message", msg).Error("error writing log message")
+			return false
+		}
+		return true
+	} else {
 		return false
 	}
-	return true
 }
 
 func consumeLog(lf *logPair) {
