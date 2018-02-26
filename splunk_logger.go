@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -64,25 +63,11 @@ const (
 
 type splunkLoggerInterface interface {
 	logger.Logger
-	worker()
+	worker(hec *hecClient)
 }
 
 type splunkLogger struct {
-	client    *http.Client
-	transport *http.Transport
-
-	url         string
-	auth        string
 	nullMessage *splunkMessage
-
-	// http compression
-	gzipCompression      bool
-	gzipCompressionLevel int
-
-	// Advanced options
-	postMessagesFrequency time.Duration
-	postMessagesBatchSize int
-	bufferMaximum         int
 
 	// For synchronization between background worker and logger.
 	// We use channel to send messages to worker go routine.
@@ -139,6 +124,9 @@ const (
 	splunkFormatNova   = "nova"
 )
 
+/*
+New Splunk Logger
+*/
 func New(info logger.Info) (logger.Logger, error) {
 	hostname, err := info.Hostname()
 	if err != nil {
@@ -246,18 +234,21 @@ func New(info logger.Info) (logger.Logger, error) {
 		streamChannelSize     = getAdvancedOptionInt(envVarStreamChannelSize, defaultStreamChannelSize)
 	)
 
-	logger := &splunkLogger{
+	hec := &hecClient{
 		client:                client,
 		transport:             transport,
 		url:                   splunkURL.String(),
 		auth:                  "Splunk " + splunkToken,
-		nullMessage:           nullMessage,
 		gzipCompression:       gzipCompression,
 		gzipCompressionLevel:  gzipCompressionLevel,
-		stream:                make(chan *splunkMessage, streamChannelSize),
 		postMessagesFrequency: postMessagesFrequency,
 		postMessagesBatchSize: postMessagesBatchSize,
 		bufferMaximum:         bufferMaximum,
+	}
+
+	logger := &splunkLogger{
+		nullMessage: nullMessage,
+		stream:      make(chan *splunkMessage, streamChannelSize),
 	}
 
 	// By default we verify connection, but we allow use to skip that
@@ -270,7 +261,7 @@ func New(info logger.Info) (logger.Logger, error) {
 		}
 	}
 	if verifyConnection {
-		err = verifySplunkConnection(logger)
+		err = hec.verifySplunkConnection(logger)
 		if err != nil {
 			return nil, err
 		}
@@ -340,12 +331,14 @@ func New(info logger.Info) (logger.Logger, error) {
 		return nil, fmt.Errorf("Unexpected format %s", splunkFormat)
 	}
 
-	go loggerWrapper.worker()
+	go loggerWrapper.worker(hec)
 
 	return loggerWrapper, nil
 }
 
-// ValidateLogOpt looks for all supported by splunk driver options
+/*
+ValidateLogOpt validates the arguments passed in to the plugin
+*/
 func ValidateLogOpt(cfg map[string]string) error {
 	for key := range cfg {
 		switch key {
@@ -498,17 +491,18 @@ Do a HEC POST when
 - the number of messages matches the batch size
 - time out
 */
-func (l *splunkLogger) worker() {
-	timer := time.NewTicker(l.postMessagesFrequency)
+func (l *splunkLogger) worker(hec *hecClient) {
+	timer := time.NewTicker(hec.postMessagesFrequency)
 	var messages []*splunkMessage
 	for {
 		select {
 		case message, open := <-l.stream:
+			// if the stream channel is closed, post the remaining messsages in the buffer
 			if !open {
-				l.postMessages(messages, true)
+				hec.postMessages(messages, true)
 				l.lock.Lock()
 				defer l.lock.Unlock()
-				l.transport.CloseIdleConnections()
+				hec.transport.CloseIdleConnections()
 				l.closed = true
 				l.closedCond.Signal()
 				return
@@ -517,108 +511,13 @@ func (l *splunkLogger) worker() {
 			// Only sending when we get exactly to the batch size,
 			// This also helps not to fire postMessages on every new message,
 			// when previous try failed.
-			if len(messages)%l.postMessagesBatchSize == 0 {
-				messages = l.postMessages(messages, false)
+			if len(messages)%hec.postMessagesBatchSize == 0 {
+				messages = hec.postMessages(messages, false)
 			}
 		case <-timer.C:
-			messages = l.postMessages(messages, false)
+			messages = hec.postMessages(messages, false)
 		}
 	}
-}
-
-func (l *splunkLogger) postMessages(messages []*splunkMessage, lastChance bool) []*splunkMessage {
-	messagesLen := len(messages)
-	for i := 0; i < messagesLen; i += l.postMessagesBatchSize {
-		upperBound := i + l.postMessagesBatchSize
-		if upperBound > messagesLen {
-			upperBound = messagesLen
-		}
-		if err := l.tryPostMessages(messages[i:upperBound]); err != nil {
-			logrus.Error(err)
-			if messagesLen-i >= l.bufferMaximum || lastChance {
-				// If this is last chance - print them all to the daemon log
-				if lastChance {
-					upperBound = messagesLen
-				}
-				// Not all sent, but buffer has got to its maximum, let's log all messages
-				// we could not send and return buffer minus one batch size
-				for j := i; j < upperBound; j++ {
-					if jsonEvent, err := json.Marshal(messages[j]); err != nil {
-						logrus.Error(err)
-					} else {
-						logrus.Error(fmt.Errorf("Failed to send a message '%s'", string(jsonEvent)))
-					}
-				}
-				return messages[upperBound:messagesLen]
-			}
-			// Not all sent, returning buffer from where we have not sent messages
-			return messages[i:messagesLen]
-		}
-	}
-	// All sent, return empty buffer
-	return messages[:0]
-}
-
-func (l *splunkLogger) tryPostMessages(messages []*splunkMessage) error {
-	if len(messages) == 0 {
-		return nil
-	}
-	var buffer bytes.Buffer
-	var writer io.Writer
-	var gzipWriter *gzip.Writer
-	var err error
-	// If gzip compression is enabled - create gzip writer with specified compression
-	// level. If gzip compression is disabled, use standard buffer as a writer
-	if l.gzipCompression {
-		gzipWriter, err = gzip.NewWriterLevel(&buffer, l.gzipCompressionLevel)
-		if err != nil {
-			return err
-		}
-		writer = gzipWriter
-	} else {
-		writer = &buffer
-	}
-	for _, message := range messages {
-		jsonEvent, err := json.Marshal(message)
-		if err != nil {
-			return err
-		}
-		if _, err := writer.Write(jsonEvent); err != nil {
-			return err
-		}
-	}
-	// If gzip compression is enabled, tell it, that we are done
-	if l.gzipCompression {
-		err = gzipWriter.Close()
-		if err != nil {
-			return err
-		}
-	}
-	req, err := http.NewRequest("POST", l.url, bytes.NewBuffer(buffer.Bytes()))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", l.auth)
-	// Tell if we are sending gzip compressed body
-	if l.gzipCompression {
-		req.Header.Set("Content-Encoding", "gzip")
-	}
-	res, err := l.client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		var body []byte
-		body, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("%s: failed to send event - %s - %s", driverName, res.Status, body)
-	}
-	io.Copy(ioutil.Discard, res.Body)
-	return nil
 }
 
 func (l *splunkLogger) Close() error {
@@ -642,27 +541,4 @@ func (l *splunkLogger) createSplunkMessage(msg *logger.Message) *splunkMessage {
 	message := *l.nullMessage
 	message.Time = fmt.Sprintf("%f", float64(msg.Timestamp.UnixNano())/float64(time.Second))
 	return &message
-}
-
-func verifySplunkConnection(l *splunkLogger) error {
-	req, err := http.NewRequest(http.MethodOptions, l.url, nil)
-	if err != nil {
-		return err
-	}
-	res, err := l.client.Do(req)
-	if err != nil {
-		return err
-	}
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-	if res.StatusCode != http.StatusOK {
-		var body []byte
-		body, err = ioutil.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("%s: failed to verify connection - %s - %s", driverName, res.Status, body)
-	}
-	return nil
 }
