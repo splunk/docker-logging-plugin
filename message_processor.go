@@ -11,6 +11,7 @@ import (
 	protoio "github.com/gogo/protobuf/io"
 )
 
+// TODO: implement partial logs and multiline logs logic
 type messageProcessor struct {
 	prevMesssage logdriver.LogEntry
 }
