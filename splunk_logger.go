@@ -63,10 +63,11 @@ const (
 
 type splunkLoggerInterface interface {
 	logger.Logger
-	worker(hec *hecClient)
+	worker()
 }
 
 type splunkLogger struct {
+	hec         *hecClient
 	nullMessage *splunkMessage
 
 	// For synchronization between background worker and logger.
@@ -234,19 +235,18 @@ func New(info logger.Info) (logger.Logger, error) {
 		streamChannelSize     = getAdvancedOptionInt(envVarStreamChannelSize, defaultStreamChannelSize)
 	)
 
-	hec := &hecClient{
-		client:                client,
-		transport:             transport,
-		url:                   splunkURL.String(),
-		auth:                  "Splunk " + splunkToken,
-		gzipCompression:       gzipCompression,
-		gzipCompressionLevel:  gzipCompressionLevel,
-		postMessagesFrequency: postMessagesFrequency,
-		postMessagesBatchSize: postMessagesBatchSize,
-		bufferMaximum:         bufferMaximum,
-	}
-
 	logger := &splunkLogger{
+		hec: &hecClient{
+			client:                client,
+			transport:             transport,
+			url:                   splunkURL.String(),
+			auth:                  "Splunk " + splunkToken,
+			gzipCompression:       gzipCompression,
+			gzipCompressionLevel:  gzipCompressionLevel,
+			postMessagesFrequency: postMessagesFrequency,
+			postMessagesBatchSize: postMessagesBatchSize,
+			bufferMaximum:         bufferMaximum,
+		},
 		nullMessage: nullMessage,
 		stream:      make(chan *splunkMessage, streamChannelSize),
 	}
@@ -261,7 +261,7 @@ func New(info logger.Info) (logger.Logger, error) {
 		}
 	}
 	if verifyConnection {
-		err = hec.verifySplunkConnection(logger)
+		err = logger.hec.verifySplunkConnection(logger)
 		if err != nil {
 			return nil, err
 		}
@@ -331,7 +331,7 @@ func New(info logger.Info) (logger.Logger, error) {
 		return nil, fmt.Errorf("Unexpected format %s", splunkFormat)
 	}
 
-	go loggerWrapper.worker(hec)
+	go loggerWrapper.worker()
 
 	return loggerWrapper, nil
 }
@@ -491,18 +491,18 @@ Do a HEC POST when
 - the number of messages matches the batch size
 - time out
 */
-func (l *splunkLogger) worker(hec *hecClient) {
-	timer := time.NewTicker(hec.postMessagesFrequency)
+func (l *splunkLogger) worker() {
+	timer := time.NewTicker(l.hec.postMessagesFrequency)
 	var messages []*splunkMessage
 	for {
 		select {
 		case message, open := <-l.stream:
 			// if the stream channel is closed, post the remaining messsages in the buffer
 			if !open {
-				hec.postMessages(messages, true)
+				l.hec.postMessages(messages, true)
 				l.lock.Lock()
 				defer l.lock.Unlock()
-				hec.transport.CloseIdleConnections()
+				l.hec.transport.CloseIdleConnections()
 				l.closed = true
 				l.closedCond.Signal()
 				return
@@ -511,11 +511,11 @@ func (l *splunkLogger) worker(hec *hecClient) {
 			// Only sending when we get exactly to the batch size,
 			// This also helps not to fire postMessages on every new message,
 			// when previous try failed.
-			if len(messages)%hec.postMessagesBatchSize == 0 {
-				messages = hec.postMessages(messages, false)
+			if len(messages)%l.hec.postMessagesBatchSize == 0 {
+				messages = l.hec.postMessages(messages, false)
 			}
 		case <-timer.C:
-			messages = hec.postMessages(messages, false)
+			messages = l.hec.postMessages(messages, false)
 		}
 	}
 }
