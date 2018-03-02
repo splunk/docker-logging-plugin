@@ -1,2 +1,2 @@
 - service: splunk-docker-plugin
-  command: make
+  command: echo "Hello"
