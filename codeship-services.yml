@@ -1,3 +1,4 @@
 splunk-docker-plugin:
   add_docker: true
-  image: ubuntu
+  build:
+    image: alpine
