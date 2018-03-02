@@ -1,2 +1,2 @@
 splunk-docker-plugin:
-  build: .
+  add_docker: true
