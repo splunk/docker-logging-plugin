@@ -1,2 +1,2 @@
 - service: splunk-docker-plugin
-  command: bash -c "make"
+  command: make
