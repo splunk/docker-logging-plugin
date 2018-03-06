@@ -88,6 +88,7 @@ func (hec *hecClient) tryPostMessages(messages []*splunkMessage) error {
 	}
 	for _, message := range messages {
 		jsonEvent, err := json.Marshal(message)
+		logrus.Debugf("Message event is %s", jsonEvent)
 		if err != nil {
 			return err
 		}
