@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"io"
 	"time"
@@ -21,6 +22,7 @@ func newMessageProcessor() *messageProcessor {
 }
 
 func (mg messageProcessor) process(lf *logPair) {
+	logrus.Debug("Start to consume log")
 	consumeLog(lf)
 }
 
@@ -43,9 +45,10 @@ func consumeLog(lf *logPair) {
 				lf.stream.Close()
 				return
 			}
+
+			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-
 		if sendMessage(lf.splunkl, &buf, lf.info.ContainerID) == false {
 			continue
 		}
@@ -55,11 +58,18 @@ func consumeLog(lf *logPair) {
 
 		buf.Reset()
 	}
+
 }
 
 // send the log entry message to logger
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
+	logrus.WithField("source", buf.Source).WithField("Line", buf.Line).Debug("writing log message")
 	var msg logger.Message
+	trimedLine := bytes.Fields(buf.Line)
+	if len(trimedLine) == 0 {
+		logrus.Debug("Ignoring empty string")
+		return false
+	}
 	msg.Line = buf.Line
 	msg.Source = buf.Source
 	msg.Partial = buf.Partial

@@ -31,12 +31,14 @@ type hecClient struct {
 }
 
 func (hec *hecClient) postMessages(messages []*splunkMessage, lastChance bool) []*splunkMessage {
+	logrus.Debugf("Received %d messages.", len(messages))
 	messagesLen := len(messages)
 	for i := 0; i < messagesLen; i += hec.postMessagesBatchSize {
 		upperBound := i + hec.postMessagesBatchSize
 		if upperBound > messagesLen {
 			upperBound = messagesLen
 		}
+		logrus.WithField("upperBound", upperBound).WithField("messagesLen", messagesLen).Debug("processing batch")
 		if err := hec.tryPostMessages(messages[i:upperBound]); err != nil {
 			logrus.Error(err)
 			if messagesLen-i >= hec.bufferMaximum || lastChance {
@@ -64,7 +66,9 @@ func (hec *hecClient) postMessages(messages []*splunkMessage, lastChance bool) [
 }
 
 func (hec *hecClient) tryPostMessages(messages []*splunkMessage) error {
+	logrus.Debugf("try to post %d messages.", len(messages))
 	if len(messages) == 0 {
+		logrus.Debug("No message to post")
 		return nil
 	}
 	var buffer bytes.Buffer
