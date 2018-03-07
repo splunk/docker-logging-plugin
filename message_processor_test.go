@@ -10,6 +10,13 @@ func TestEmptyString(t *testing.T) {
 		t.Fatalf("%s should be empty event", test)
 	}
 
+	test = []byte{' ', ' '}
+	res = isEmptyEvent(test)
+
+	if !res {
+		t.Fatalf("%s should be empty event", test)
+	}
+
 	test = []byte{}
 	res = isEmptyEvent(test)
 
