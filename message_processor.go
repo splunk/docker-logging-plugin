@@ -65,8 +65,7 @@ func consumeLog(lf *logPair) {
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
 	logrus.WithField("source", buf.Source).WithField("Line", buf.Line).Debug("writing log message")
 	var msg logger.Message
-	trimedLine := bytes.Fields(buf.Line)
-	if len(trimedLine) == 0 {
+	if isEmptyEvent(buf.Line) {
 		logrus.Debug("Ignoring empty string")
 		return false
 	}
@@ -81,4 +80,12 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) b
 		return false
 	}
 	return true
+}
+
+func isEmptyEvent(message []byte) bool {
+	trimedLine := bytes.Fields(message)
+	if len(trimedLine) == 0 {
+		return true
+	}
+	return false
 }
