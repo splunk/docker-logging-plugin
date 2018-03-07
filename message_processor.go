@@ -38,7 +38,8 @@ func consumeLog(lf *logPair) {
 	var buf logdriver.LogEntry
 	for {
 		// reads a message from the log stream and put it in a buffer until the EOF
-		// if there is any other error, recreate the stream reader
+		// if there is any other error (usually fail when the bytes are not utf8 decodable),
+		// recreate the stream reader to continue reading
 		if err := dec.ReadMsg(&buf); err != nil {
 			if err == io.EOF {
 				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
@@ -46,7 +47,7 @@ func consumeLog(lf *logPair) {
 				return
 			}
 
-			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
+			logrus.WithField("id", lf.info.ContainerID).Error(err)
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
 		if sendMessage(lf.splunkl, &buf, lf.info.ContainerID) == false {
@@ -69,6 +70,7 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) b
 		logrus.Debug("Ignoring empty string")
 		return false
 	}
+
 	msg.Line = buf.Line
 	msg.Source = buf.Source
 	msg.Partial = buf.Partial
