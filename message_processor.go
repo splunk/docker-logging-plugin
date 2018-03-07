@@ -66,14 +66,10 @@ func consumeLog(lf *logPair) {
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
 	logrus.WithField("source", buf.Source).WithField("Line", buf.Line).Debug("writing log message")
 	var msg logger.Message
-	if isEmptyEvent(buf.Line) {
-		logrus.Debug("Ignoring empty string")
+	if !isValidEvent(buf.Line) {
 		return false
 	}
-	if !utf8.Valid(buf.Line) {
-		logrus.Error("Not UTF-8 decodable")
-		return false
-	}
+
 	msg.Line = buf.Line
 	msg.Source = buf.Source
 	msg.Partial = buf.Partial
@@ -87,10 +83,16 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) b
 	return true
 }
 
-func isEmptyEvent(message []byte) bool {
+func isValidEvent(message []byte) bool {
 	trimedLine := bytes.Fields(message)
 	if len(trimedLine) == 0 {
-		return true
+		logrus.Info("Ignoring empty string")
+		return false
 	}
-	return false
+
+	if !utf8.Valid(message) {
+		logrus.Error("Not UTF-8 decodable")
+		return false
+	}
+	return true
 }
