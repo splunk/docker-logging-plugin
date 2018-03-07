@@ -66,7 +66,7 @@ func consumeLog(lf *logPair) {
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
 	logrus.WithField("source", buf.Source).WithField("Line", buf.Line).Debug("writing log message")
 	var msg logger.Message
-	if !isValidEvent(buf.Line) {
+	if !shouldSendMessage(buf.Line) {
 		return false
 	}
 
@@ -83,16 +83,20 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) b
 	return true
 }
 
-func isValidEvent(message []byte) bool {
+// shouldSendMessage() returns a boolean indicating
+// if the message should be sent to Splunk
+func shouldSendMessage(message []byte) bool {
 	trimedLine := bytes.Fields(message)
 	if len(trimedLine) == 0 {
 		logrus.Info("Ignoring empty string")
 		return false
 	}
 
+	// even if the message byte array is not a valid utf8 string
+	// we are still sending the message to splunk
 	if !utf8.Valid(message) {
-		logrus.Error("Not UTF-8 decodable")
-		return false
+		logrus.Warnf("%v is not UTF-8 decodable", message)
+		return true
 	}
 	return true
 }
