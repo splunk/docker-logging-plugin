@@ -1,3 +1,19 @@
-splunk-docker-plugin:
-  add_docker: true
-  build: luckyj5/docker-plugin
+docker-logging-plugin:
+  build:
+    image: dlp
+    dockerfile_path: ci2/Dockerfile
+  hostname: dlp
+  volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  depends_on:
+    - splunk-hec
+
+splunk-hec:
+  build:
+    image: splunkhec
+    dockerfile_path: ci2/dockerfile-splunk
+  hostname: splunk-hec
+  environment:
+  - SPLUNK_START_ARGS=--accept-license
+  - SPLUNK_USER=root
+

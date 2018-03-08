@@ -1,2 +1,8 @@
-- service: splunk-docker-plugin
-  command: echo "Hello"
+- type: parallel
+  steps:
+    - name: dlp
+      service: docker-logging-plugin
+      command: /go/docker-logging-plugin/script.sh
+    - name: splunk
+      service: splunk-hec
+      command: /sbin/startup-splunk.sh start-service

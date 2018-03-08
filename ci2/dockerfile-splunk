@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install -y wget sudo \
     && rm -rf /var/lib/apt/lists/*
 
 
-COPY startup-splunk.sh /sbin/startup-splunk.sh
+COPY ci2/startup-splunk.sh /sbin/startup-splunk.sh
 RUN chmod +x /sbin/startup-splunk.sh
 
 # Copy new license
@@ -55,11 +55,11 @@ WORKDIR /opt/splunk
 
 #Create HEC input
 RUN mkdir -p /opt/splunk/etc/apps/splunk_httpinput/local
-COPY inputs.conf /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf
+COPY ci2/inputs.conf /opt/splunk/etc/apps/splunk_httpinput/local/inputs.conf
 
 #Allow remote logging and reduce the minFreeSpace size to 1GB
 RUN mkdir -p /opt/splunk/etc/system/local
-COPY server.conf /opt/splunk/etc/system/local/server.conf
+COPY ci2/server.conf /opt/splunk/etc/system/local/server.conf
 
 # Configurations folder, var folder for everything (indexes, logs, kvstore)
 VOLUME [ "/opt/splunk/etc", "/opt/splunk/var" ]
