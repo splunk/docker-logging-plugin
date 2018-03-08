@@ -38,9 +38,9 @@ def open_fifo(fifo_location):
 
 def write_proto_buf_message(fifo_writer=None, source="test",
     time_nano = int(time.time() * 1000000000), message="",
-    partial=False):
+    partial=False, id=""):
     log = LogEntry_pb2.LogEntry()
-    log.source = source
+    log.source = id
     log.time_nano = time_nano
     log.line = bytes(message)
     log.partial = partial
@@ -65,7 +65,7 @@ def request_start_logging(file):
                 "splunk-url": "https://52.53.254.149:8088",
                 "splunk-token": "7190F984-2C46-434F-8F3F-0455BD6B58A2",
                 "splunk-insecureskipverify": "true",
-                            "splunk-format": "raw",
+                            "splunk-format": "json",
                             "tag": ""
             },
             "LogPath": "/home/ec2-user/test.txt"
@@ -105,7 +105,7 @@ def request_stop_logging(file):
     logger.info(str(res))
 
 def check_events_from_splunk(index="main", id=None, start_time="-24h@h", end_time="now"):
-    query = _compose_search_query()
+    query = _compose_search_query(index, id)
     events = _collect_events(query, start_time, end_time)
 
     return events
@@ -228,5 +228,3 @@ def _requests_retry_session(
     session.mount('https://', adapter)
 
     return session
-
-check_events_from_splunk()
