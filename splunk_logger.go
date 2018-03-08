@@ -495,9 +495,6 @@ func (l *splunkLogger) worker() {
 	for {
 		select {
 		case message, open := <-l.stream:
-			if message != nil {
-				logrus.Debugf("Reading a message event %s", message.Event)
-			}
 			// if the stream channel is closed, post the remaining messsages in the buffer
 			if !open {
 				l.hec.postMessages(messages, true)

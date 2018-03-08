@@ -38,7 +38,6 @@ func (hec *hecClient) postMessages(messages []*splunkMessage, lastChance bool) [
 		if upperBound > messagesLen {
 			upperBound = messagesLen
 		}
-		logrus.WithField("upperBound", upperBound).WithField("messagesLen", messagesLen).Debug("processing batch")
 		if err := hec.tryPostMessages(messages[i:upperBound]); err != nil {
 			logrus.Error(err)
 			if messagesLen-i >= hec.bufferMaximum || lastChance {
@@ -58,15 +57,16 @@ func (hec *hecClient) postMessages(messages []*splunkMessage, lastChance bool) [
 				return messages[upperBound:messagesLen]
 			}
 			// Not all sent, returning buffer from where we have not sent messages
+			logrus.Debugf("%d messages failed to sent", messagesLen)
 			return messages[i:messagesLen]
 		}
 	}
 	// All sent, return empty buffer
+	logrus.Debugf("%d messages were sent successfully", messagesLen)
 	return messages[:0]
 }
 
 func (hec *hecClient) tryPostMessages(messages []*splunkMessage) error {
-	logrus.Debugf("try to post %d messages.", len(messages))
 	if len(messages) == 0 {
 		logrus.Debug("No message to post")
 		return nil
@@ -88,7 +88,6 @@ func (hec *hecClient) tryPostMessages(messages []*splunkMessage) error {
 	}
 	for _, message := range messages {
 		jsonEvent, err := json.Marshal(message)
-		logrus.Debugf("Message event is %s", jsonEvent)
 		if err != nil {
 			return err
 		}
