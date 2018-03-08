@@ -15,8 +15,8 @@ from common import start_logging_plugin, open_fifo,\
 ])
 def test_malformed_empty_string(setup, test_input, expected):
     id = str(uuid.uuid4())
-    
-    file = "/home/ec2-user/pipe"
+
+    file = setup["fifo_path"]
     f = open_fifo(file)
     write_proto_buf_message(f, message=test_input, source=id)
     request_start_logging(file)
@@ -25,5 +25,7 @@ def test_malformed_empty_string(setup, test_input, expected):
     time.sleep(10)
     request_stop_logging(file)
 
-    events = check_events_from_splunk(id=id, start_time="-1m@m")
+    # check that events get to splunk
+    events = check_events_from_splunk(id=id, start_time="-1m@m", url=setup["splunkd_url"],
+                                      user=setup["splunk_user"], password=setup["splunk_password"])
     assert len(events) == expected

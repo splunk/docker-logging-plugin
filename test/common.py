@@ -14,9 +14,6 @@ logger = logging.getLogger(__name__)
 timeout = 500
 socket_start_url = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StartLogging"
 socket_stop_url = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StopLogging"
-splunk_user = "admin"
-splunk_password = "notchangeme"
-splunk_uri="https://52.53.254.149:8089"
 
 def start_logging_plugin(plugin_path):
     args= (plugin_path)
@@ -103,16 +100,17 @@ def request_stop_logging(file):
 
     logger.info(str(res))
 
-def check_events_from_splunk(index="main", id=None, start_time="-24h@h", end_time="now"):
+def check_events_from_splunk(index="main", id=None, start_time="-24h@h", end_time="now",
+                             url="", user="", password=""):
     query = _compose_search_query(index, id)
-    events = _collect_events(query, start_time, end_time)
+    events = _collect_events(query, start_time, end_time, url, user, password)
 
     return events
 
 def _compose_search_query(index="main", id=None):
     return "search index={0} {1}".format(index, id)
 
-def _collect_events(query, start_time, end_time):
+def _collect_events(query, start_time, end_time, url="", user="", password=""):
     '''
     Collect events by running the given search query
     @param: query (search query)
@@ -121,9 +119,9 @@ def _collect_events(query, start_time, end_time):
     returns events
     '''
 
-    url = '{0}/services/search/jobs?output_mode=json'.format(
-        splunk_uri)
-    logger.info('requesting: %s', url)
+    search_url = '{0}/services/search/jobs?output_mode=json'.format(
+        url)
+    logger.info('requesting: %s', search_url)
     data = {
         'search': query,
         'earliest_time': start_time,
@@ -131,18 +129,18 @@ def _collect_events(query, start_time, end_time):
     }
 
     create_job = _requests_retry_session().post(
-        url,
-        auth=(splunk_user, splunk_password),
+        search_url,
+        auth=(user, password),
         verify=False, data=data)
     _check_request_status(create_job)
 
     json_res = create_job.json()
     job_id = json_res['sid']
-    events = _wait_for_job_and__get_events(job_id)
+    events = _wait_for_job_and__get_events(job_id, url, user, password)
 
     return events
 
-def _wait_for_job_and__get_events(job_id):
+def _wait_for_job_and__get_events(job_id, url="", user="", password=""):
     '''
     Wait for the search job to finish and collect the result events
     @param: job_id
@@ -150,13 +148,13 @@ def _wait_for_job_and__get_events(job_id):
     '''
     events = []
     job_url = '{0}/services/search/jobs/{1}?output_mode=json'.format(
-        splunk_uri, str(job_id))
+        url, str(job_id))
     logger.info('requesting: %s', job_url)
 
     for _ in range(timeout):
         res = _requests_retry_session().get(
             job_url,
-            auth=(splunk_user, splunk_password),
+            auth=(user, password),
             verify=False)
         _check_request_status(res)
 
@@ -164,7 +162,7 @@ def _wait_for_job_and__get_events(job_id):
         dispatch_state = job_res['entry'][0]['content']['dispatchState']
 
         if dispatch_state == 'DONE':
-            events = _get_events(job_id)
+            events = _get_events(job_id, url, user, password)
             break
         if dispatch_state == 'FAILED':
             raise Exception('Search job: {0} failed'.format(job_url))
@@ -172,18 +170,18 @@ def _wait_for_job_and__get_events(job_id):
 
     return events
 
-def _get_events(job_id):
+def _get_events(job_id, url="", user="", password=""):
     '''
     collect the result events from a search job
     @param: job_id
     returns events
     '''
     event_url = '{0}/services/search/jobs/{1}/events?output_mode=json'.format(
-        splunk_uri, str(job_id))
+        url, str(job_id))
     logger.info('requesting: %s', event_url)
 
     event_job = _requests_retry_session().get(
-        event_url, auth=(splunk_user, splunk_password),
+        event_url, auth=(user, password),
         verify=False)
     _check_request_status(event_job)
 
