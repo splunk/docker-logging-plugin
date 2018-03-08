@@ -64,7 +64,6 @@ func consumeLog(lf *logPair) {
 
 // send the log entry message to logger
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
-	logrus.WithField("source", buf.Source).WithField("Line", buf.Line).Debug("writing log message")
 	var msg logger.Message
 	if !shouldSendMessage(buf.Line) {
 		return false
