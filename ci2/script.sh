@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 export SHELL=/bin/bash
-cd /go/docker-logging-plugin
+cd /go
 
 go get -t -v ./...
+cd docker-logging-plugin
 make
 sleep 30
 
