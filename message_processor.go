@@ -21,14 +21,20 @@ func newMessageProcessor() *messageProcessor {
 }
 
 func (mg messageProcessor) process(lf *logPair) {
-	consumeLog(lf)
+	// Initialize partial msg struct
+	pm := partialMessages{}
+	consumeLog(lf, pm)
+}
+
+type partialMessages struct {
+	pmsg []byte
 }
 
 /*
 This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
-func consumeLog(lf *logPair) {
+func consumeLog(lf *logPair, p partialMessages) {
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -46,10 +52,10 @@ func consumeLog(lf *logPair) {
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
 
-		if sendMessage(lf.splunkl, &buf, lf.info.ContainerID) == false {
+		if sendMessage(lf.splunkl, &buf, &p, lf.info.ContainerID) == false {
 			continue
 		}
-		if sendMessage(lf.jsonl, &buf, lf.info.ContainerID) == false {
+		if sendMessage(lf.jsonl, &buf, &p, lf.info.ContainerID) == false {
 			continue
 		}
 
@@ -58,17 +64,23 @@ func consumeLog(lf *logPair) {
 }
 
 // send the log entry message to logger
-func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
+func sendMessage(l logger.Logger, buf *logdriver.LogEntry, p *partialMessages, containerid string) bool {
 	var msg logger.Message
-	msg.Line = buf.Line
-	msg.Source = buf.Source
-	msg.Partial = buf.Partial
-	msg.Timestamp = time.Unix(0, buf.TimeNano)
-	err := l.Log(&msg)
+	// Add event to partial buffer byte array
+	p.pmsg = append(p.pmsg, buf.Line...)
+	// Only send if partial bit is not set
+	if !buf.Partial {
+		msg.Line = p.pmsg
+		msg.Source = buf.Source
+		msg.Partial = buf.Partial
+		msg.Timestamp = time.Unix(0, buf.TimeNano)
+		err := l.Log(&msg)
 
-	if err != nil {
-		logrus.WithField("id", containerid).WithError(err).WithField("message", msg).Error("error writing log message")
-		return false
+		if err != nil {
+			logrus.WithField("id", containerid).WithError(err).WithField("message", msg).Error("error writing log message")
+			return false
+		}
+		p = nil
 	}
 	return true
 }
