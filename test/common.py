@@ -16,7 +16,6 @@ socket_start_url = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDr
 socket_stop_url = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StopLogging"
 splunk_user = "admin"
 splunk_password = "notchangeme"
-
 splunk_uri="https://52.53.254.149:8089"
 
 def start_logging_plugin(plugin_path):
@@ -40,7 +39,7 @@ def write_proto_buf_message(fifo_writer=None, source="test",
     time_nano = int(time.time() * 1000000000), message="",
     partial=False, id=""):
     log = LogEntry_pb2.LogEntry()
-    log.source = id
+    log.source = source
     log.time_nano = time_nano
     log.line = bytes(message)
     log.partial = partial
