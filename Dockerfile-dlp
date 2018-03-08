@@ -44,8 +44,8 @@ WORKDIR /go
 
 RUN git clone https://github.com/luckyj5/docker-logging-plugin.git
 
-COPY ci2/script.sh /go/docker-logging-plugin
-COPY ci2/run.js /go/docker-logging-plugin
+COPY script.sh /go/docker-logging-plugin
+COPY run.js /go/docker-logging-plugin
 RUN chmod +x /go/docker-logging-plugin/script.sh
 RUN chmod +x /go/docker-logging-plugin/run.js
 

@@ -1,17 +1,16 @@
 docker-logging-plugin:
   build:
     image: dlp
-    dockerfile_path: ci2/Dockerfile
+    dockerfile_path: Dockerfile-dlp
   hostname: dlp
-  volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+  add_docker: true
   depends_on:
     - splunk-hec
 
 splunk-hec:
   build:
     image: splunkhec
-    dockerfile_path: ci2/dockerfile-splunk
+    dockerfile_path: dockerfile-splunk
   hostname: splunk-hec
   environment:
   - SPLUNK_START_ARGS=--accept-license
