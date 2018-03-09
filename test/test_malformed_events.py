@@ -9,9 +9,10 @@ from common import start_logging_plugin, open_fifo,\
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    ("", 0),
-    (" ", 0),
-    ("hello", 1),
+    ("", 0), # should not be sent to splunk
+    (" ", 0), # should not be sent to splunk
+    ("\xF0\xA4\xAD", 1), # non utf-8 decodable chars should still make it to splunk
+    ("hello", 1), # normal string should always to sent to splunk
 ])
 def test_malformed_empty_string(setup, test_input, expected):
     id = str(uuid.uuid4())

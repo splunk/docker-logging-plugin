@@ -24,9 +24,6 @@ def start_logging_plugin(plugin_path):
 def kill_logging_plugin(plugin_path):
     os.system("killall " + plugin_path)
 
-def read_file(file):
-    f = open(file, 'r')
-
 def open_fifo(fifo_location):
     fifo_writer = open(fifo_location, 'wb')
 
@@ -72,7 +69,6 @@ def request_start_logging(file):
         "Content-Type" : "application/json",
         "Host": "localhost"
     }
-
 
     session = requests_unixsocket.Session()
     res = session.post(
