@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"io"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types/plugins/logdriver"
@@ -21,6 +23,7 @@ func newMessageProcessor() *messageProcessor {
 }
 
 func (mg messageProcessor) process(lf *logPair) {
+	logrus.Debug("Start to consume log")
 	consumeLog(lf)
 }
 
@@ -43,9 +46,10 @@ func consumeLog(lf *logPair) {
 				lf.stream.Close()
 				return
 			}
+
+			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-
 		if sendMessage(lf.splunkl, &buf, lf.info.ContainerID) == false {
 			continue
 		}
@@ -55,11 +59,16 @@ func consumeLog(lf *logPair) {
 
 		buf.Reset()
 	}
+
 }
 
 // send the log entry message to logger
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
 	var msg logger.Message
+	if !shouldSendMessage(buf.Line) {
+		return false
+	}
+
 	msg.Line = buf.Line
 	msg.Source = buf.Source
 	msg.Partial = buf.Partial
@@ -69,6 +78,24 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) b
 	if err != nil {
 		logrus.WithField("id", containerid).WithError(err).WithField("message", msg).Error("error writing log message")
 		return false
+	}
+	return true
+}
+
+// shouldSendMessage() returns a boolean indicating
+// if the message should be sent to Splunk
+func shouldSendMessage(message []byte) bool {
+	trimedLine := bytes.Fields(message)
+	if len(trimedLine) == 0 {
+		logrus.Info("Ignoring empty string")
+		return false
+	}
+
+	// even if the message byte array is not a valid utf8 string
+	// we are still sending the message to splunk
+	if !utf8.Valid(message) {
+		logrus.Warnf("%v is not UTF-8 decodable", message)
+		return true
 	}
 	return true
 }
