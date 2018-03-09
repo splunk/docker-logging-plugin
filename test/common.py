@@ -11,9 +11,9 @@ from requests.packages.urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
-timeout = 500
-socket_start_url = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StartLogging"
-socket_stop_url = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StopLogging"
+TIMEROUT = 500
+SOCKET_START_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StartLogging"
+SOCKET_STOP_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StopLogging"
 
 def start_logging_plugin(plugin_path):
     args= (plugin_path)
@@ -76,7 +76,7 @@ def request_start_logging(file):
 
     session = requests_unixsocket.Session()
     res = session.post(
-        socket_start_url,
+        SOCKET_START_URL,
         data=json.dumps(reqObj),
         headers=headers)
     
@@ -91,7 +91,7 @@ def request_stop_logging(file):
     }
     session = requests_unixsocket.Session()
     res = session.post(
-        socket_stop_url,
+        SOCKET_STOP_URL,
         data=json.dumps(reqObj)
     )
 
@@ -151,7 +151,7 @@ def _wait_for_job_and__get_events(job_id, url="", user="", password=""):
         url, str(job_id))
     logger.info('requesting: %s', job_url)
 
-    for _ in range(timeout):
+    for _ in range(TIMEROUT):
         res = _requests_retry_session().get(
             job_url,
             auth=(user, password),
