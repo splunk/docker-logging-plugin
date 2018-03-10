@@ -4,5 +4,27 @@
     `source venv/bin/activate`
 1. Install the dependencies  
     `pip install -r requirements.txt`  
-2. Start the test  
-    `python -m pytest`
+2. Start the test with the required options configured  
+    `python -m pytest <options>`  
+
+    **Options are:**  
+    --splunkd-url
+    * Description: splunkd url used to send test data to. Eg: https://localhost:8089  
+    * Default: https://52.53.254.149:8089
+
+    --splunk-user
+    * Description: splunk username  
+    * Default: admin
+
+    --splunk-password
+    * Description: splunk user password  
+    * Default: notchangeme
+
+    --docker-plugin-path
+    * Description: docker plugin binary path  
+    * Default: /home/ec2-user/plugin/splunk-log-plugin
+
+    --fifo-path
+    * Description: full file path to the fifo  
+    * Default: /home/ec2-user/pipe
+
