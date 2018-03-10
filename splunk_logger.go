@@ -442,8 +442,6 @@ func (l *splunkLoggerInline) Log(msg *logger.Message) error {
 func (l *splunkLoggerNova) Log(msg *logger.Message) error {
 	message := l.createSplunkMessage(msg)
 	message.Entity = message.Host
-	message.Source = message.Source
-
 	message.Event = string(append(l.prefix, msg.Line...))
 	logger.PutMessage(msg)
 	return l.queueMessageAsync(message)
