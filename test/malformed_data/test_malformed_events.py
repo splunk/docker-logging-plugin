@@ -36,7 +36,7 @@ def test_malformed_empty_string(setup, test_input, expected):
 
     logger.info("Writing data in protobuf with source=%s", u_id)
     write_proto_buf_message(f_writer, message=test_input, source=u_id)
-    request_start_logging(file_path)
+    request_start_logging(file_path, setup["splunk_hec_url"], setup["splunk_hec_token"])
 
     # wait for 10 seconds to allow messages to be sent
     time.sleep(10)

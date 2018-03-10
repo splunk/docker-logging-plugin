@@ -20,6 +20,14 @@
     * Description: splunk user password  
     * Default: changeme
 
+    --splunk-hec-url
+    * Description: splunk hec endpoint used by logging plugin.  
+    * Default: https://localhost:8088
+
+    --splunk-hec-token
+    * Description: splunk hec token for authentication.
+    * Required
+
     --docker-plugin-path
     * Description: docker plugin binary path  
     * Required

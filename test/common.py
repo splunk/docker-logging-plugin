@@ -63,7 +63,7 @@ def write_proto_buf_message(fifo_writer=None,
     fifo_writer.close()
 
 
-def request_start_logging(file_path):
+def request_start_logging(file_path, hec_url, hec_token):
     '''
     send a request to the plugin to start logging
     @param: file_path
@@ -73,8 +73,8 @@ def request_start_logging(file_path):
         "Info": {
             "ContainerID": "test",
             "Config": {
-                "splunk-url": "https://52.53.254.149:8088",
-                "splunk-token": "7190F984-2C46-434F-8F3F-0455BD6B58A2",
+                "splunk-url": hec_url,
+                "splunk-token": hec_token,
                 "splunk-insecureskipverify": "true",
                 "splunk-format": "json",
                 "tag": ""

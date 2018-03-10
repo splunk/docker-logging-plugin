@@ -14,6 +14,12 @@ def pytest_addoption(parser):
     parser.addoption("--splunk-password",
                      help="splunk user password",
                      default="changeme")
+    parser.addoption("--splunk-hec-url",
+                     help="splunk hec endpoint used by logging plugin.",
+                     default="https://localhost:8088")
+    parser.addoption("--splunk-hec-token",
+                     help="splunk hec token for authentication.",
+                     required=True),
     parser.addoption("--docker-plugin-path",
                      help="docker plugin binary path",
                      required=True)
@@ -26,6 +32,8 @@ def pytest_addoption(parser):
 def setup(request):
     config = {}
     config["splunkd_url"] = request.config.getoption("--splunkd-url")
+    config["splunk_hec_url"] = request.config.getoption("--splunk-hec-url")
+    config["splunk_hec_token"] = request.config.getoption("--splunk-hec-token")
     config["splunk_user"] = request.config.getoption("--splunk-user")
     config["splunk_password"] = request.config.getoption("--splunk-password")
     config["plugin_path"] = request.config.getoption("--docker-plugin-path")
