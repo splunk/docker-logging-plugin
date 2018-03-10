@@ -3,24 +3,23 @@ import time
 from common import start_logging_plugin, \
     kill_logging_plugin
 
-# TODO: update the default to be more generic.
 def pytest_addoption(parser):
     parser.addoption("--splunkd-url",
                      help="splunkd url used to send test data to. \
                           Eg: https://localhost:8089",
-                     default="https://52.53.254.149:8089")
+                     default="https://localhost:8089")
     parser.addoption("--splunk-user",
                      help="splunk username",
                      default="admin")
     parser.addoption("--splunk-password",
                      help="splunk user password",
-                     default="notchangeme")
+                     default="changeme")
     parser.addoption("--docker-plugin-path",
                      help="docker plugin binary path",
-                     default="/home/ec2-user/plugin/splunk-log-plugin")
+                     required=True)
     parser.addoption("--fifo-path",
                      help="full file path to the fifo",
-                     default="/home/ec2-user/pipe")
+                     required=True)
 
 
 @pytest.fixture(scope="function")
