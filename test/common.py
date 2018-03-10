@@ -15,23 +15,36 @@ TIMEROUT = 500
 SOCKET_START_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StartLogging"
 SOCKET_STOP_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StopLogging"
 
+
 def start_logging_plugin(plugin_path):
-    args= (plugin_path)
+    '''Start to run logging plugin binary'''
+    args = (plugin_path)
     popen = subprocess.Popen(args, stdout=subprocess.PIPE)
 
     return popen
 
+
 def kill_logging_plugin(plugin_path):
+    '''Kill running logging plugin process'''
     os.system("killall " + plugin_path)
 
+
 def open_fifo(fifo_location):
+    '''create and open a file'''
     fifo_writer = open(fifo_location, 'wb')
 
     return fifo_writer
 
-def write_proto_buf_message(fifo_writer=None, source="test",
-    time_nano = int(time.time() * 1000000000), message="",
-    partial=False, id=""):
+
+def write_proto_buf_message(fifo_writer=None,
+                            source="test",
+                            time_nano=int(time.time() * 1000000000),
+                            message="",
+                            partial=False,
+                            id=""):
+    '''
+    write to fifo in the format of LogMessage protobuf
+    '''
     log = LogEntry_pb2.LogEntry()
     log.source = source
     log.time_nano = time_nano
@@ -49,46 +62,55 @@ def write_proto_buf_message(fifo_writer=None, source="test",
     fifo_writer.flush()
     fifo_writer.close()
 
-def request_start_logging(file):
-    reqObj = {
-        "File": '/home/ec2-user/pipe',
+
+def request_start_logging(file_path):
+    '''
+    send a request to the plugin to start logging
+    @param: file_path
+    '''
+    req_obj = {
+        "File": file_path,
         "Info": {
             "ContainerID": "test",
             "Config": {
                 "splunk-url": "https://52.53.254.149:8088",
                 "splunk-token": "7190F984-2C46-434F-8F3F-0455BD6B58A2",
                 "splunk-insecureskipverify": "true",
-                            "splunk-format": "json",
-                            "tag": ""
+                "splunk-format": "json",
+                "tag": ""
             },
             "LogPath": "/home/ec2-user/test.txt"
         }
     }
 
     headers = {
-        "Content-Type" : "application/json",
+        "Content-Type": "application/json",
         "Host": "localhost"
     }
 
     session = requests_unixsocket.Session()
     res = session.post(
         SOCKET_START_URL,
-        data=json.dumps(reqObj),
+        data=json.dumps(req_obj),
         headers=headers)
-    
+
     if res.status_code != 200:
         raise Exception("Can't establish socket connection")
 
     logger.info(str(res))
 
-def request_stop_logging(file):
-    reqObj = {
-        "File": file
+
+def request_stop_logging(file_path):
+    '''
+    send a request to the plugin to stop logging
+    '''
+    req_obj = {
+        "File": file_path
     }
     session = requests_unixsocket.Session()
     res = session.post(
         SOCKET_STOP_URL,
-        data=json.dumps(reqObj)
+        data=json.dumps(req_obj)
     )
 
     if res.status_code != 200:
@@ -96,15 +118,26 @@ def request_stop_logging(file):
 
     logger.info(str(res))
 
-def check_events_from_splunk(index="main", id=None, start_time="-24h@h", end_time="now",
-                             url="", user="", password=""):
+
+def check_events_from_splunk(index="main",
+                             id=None,
+                             start_time="-24h@h",
+                             end_time="now",
+                             url="",
+                             user="",
+                             password=""):
+    '''
+    send a search request to splunk and return the events from the result
+    '''
     query = _compose_search_query(index, id)
     events = _collect_events(query, start_time, end_time, url, user, password)
 
     return events
 
+
 def _compose_search_query(index="main", id=None):
     return "search index={0} {1}".format(index, id)
+
 
 def _collect_events(query, start_time, end_time, url="", user="", password=""):
     '''
@@ -136,6 +169,7 @@ def _collect_events(query, start_time, end_time, url="", user="", password=""):
 
     return events
 
+
 def _wait_for_job_and__get_events(job_id, url="", user="", password=""):
     '''
     Wait for the search job to finish and collect the result events
@@ -166,6 +200,7 @@ def _wait_for_job_and__get_events(job_id, url="", user="", password=""):
 
     return events
 
+
 def _get_events(job_id, url="", user="", password=""):
     '''
     collect the result events from a search job
@@ -195,7 +230,8 @@ def _check_request_status(req_obj):
     '''
     if not req_obj.ok:
         raise Exception('status code: {0} \n details: {1}'.format(
-        str(req_obj.status_code), req_obj.text))
+            str(req_obj.status_code), req_obj.text))
+
 
 def _requests_retry_session(
         retries=10,
