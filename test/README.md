@@ -10,7 +10,7 @@
     **Options are:**  
     --splunkd-url
     * Description: splunkd url used to send test data to. Eg: https://localhost:8089  
-    * Default: https://52.53.254.149:8089
+    * Default: https://localhost:8089
 
     --splunk-user
     * Description: splunk username  
@@ -18,13 +18,13 @@
 
     --splunk-password
     * Description: splunk user password  
-    * Default: notchangeme
+    * Default: changeme
 
     --docker-plugin-path
     * Description: docker plugin binary path  
-    * Default: /home/ec2-user/plugin/splunk-log-plugin
+    * Required
 
     --fifo-path
     * Description: full file path to the fifo  
-    * Default: /home/ec2-user/pipe
+    * Required
 
