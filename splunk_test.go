@@ -119,16 +119,16 @@ func TestDefault(t *testing.T) {
 		t.Fatal("Unexpected Splunk Logging Driver type")
 	}
 
-	if splunkLoggerDriver.url != hec.URL()+"/services/collector/event/1.0" ||
-		splunkLoggerDriver.auth != "Splunk "+hec.token ||
+	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
+		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
 		splunkLoggerDriver.nullMessage.SourceType != "" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
-		splunkLoggerDriver.gzipCompression != false ||
-		splunkLoggerDriver.postMessagesFrequency != defaultPostMessagesFrequency ||
-		splunkLoggerDriver.postMessagesBatchSize != defaultPostMessagesBatchSize ||
-		splunkLoggerDriver.bufferMaximum != defaultBufferMaximum ||
+		splunkLoggerDriver.hec.gzipCompression != false ||
+		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
+		splunkLoggerDriver.hec.postMessagesBatchSize != defaultPostMessagesBatchSize ||
+		splunkLoggerDriver.hec.bufferMaximum != defaultBufferMaximum ||
 		cap(splunkLoggerDriver.stream) != defaultStreamChannelSize {
 		t.Fatal("Found not default values setup in Splunk Logging Driver.")
 	}
@@ -249,17 +249,17 @@ func TestInlineFormatWithNonDefaultOptions(t *testing.T) {
 		t.Fatal("Unexpected Splunk Logging Driver type")
 	}
 
-	if splunkLoggerDriver.url != hec.URL()+"/services/collector/event/1.0" ||
-		splunkLoggerDriver.auth != "Splunk "+hec.token ||
+	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
+		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "mysource" ||
 		splunkLoggerDriver.nullMessage.SourceType != "mysourcetype" ||
 		splunkLoggerDriver.nullMessage.Index != "myindex" ||
-		splunkLoggerDriver.gzipCompression != true ||
-		splunkLoggerDriver.gzipCompressionLevel != gzip.DefaultCompression ||
-		splunkLoggerDriver.postMessagesFrequency != defaultPostMessagesFrequency ||
-		splunkLoggerDriver.postMessagesBatchSize != defaultPostMessagesBatchSize ||
-		splunkLoggerDriver.bufferMaximum != defaultBufferMaximum ||
+		splunkLoggerDriver.hec.gzipCompression != true ||
+		splunkLoggerDriver.hec.gzipCompressionLevel != gzip.DefaultCompression ||
+		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
+		splunkLoggerDriver.hec.postMessagesBatchSize != defaultPostMessagesBatchSize ||
+		splunkLoggerDriver.hec.bufferMaximum != defaultBufferMaximum ||
 		cap(splunkLoggerDriver.stream) != defaultStreamChannelSize {
 		t.Fatal("Values do not match configuration.")
 	}
@@ -349,17 +349,17 @@ func TestJsonFormat(t *testing.T) {
 		t.Fatal("Unexpected Splunk Logging Driver type")
 	}
 
-	if splunkLoggerDriver.url != hec.URL()+"/services/collector/event/1.0" ||
-		splunkLoggerDriver.auth != "Splunk "+hec.token ||
+	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
+		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
 		splunkLoggerDriver.nullMessage.SourceType != "" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
-		splunkLoggerDriver.gzipCompression != true ||
-		splunkLoggerDriver.gzipCompressionLevel != gzip.BestSpeed ||
-		splunkLoggerDriver.postMessagesFrequency != defaultPostMessagesFrequency ||
-		splunkLoggerDriver.postMessagesBatchSize != defaultPostMessagesBatchSize ||
-		splunkLoggerDriver.bufferMaximum != defaultBufferMaximum ||
+		splunkLoggerDriver.hec.gzipCompression != true ||
+		splunkLoggerDriver.hec.gzipCompressionLevel != gzip.BestSpeed ||
+		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
+		splunkLoggerDriver.hec.postMessagesBatchSize != defaultPostMessagesBatchSize ||
+		splunkLoggerDriver.hec.bufferMaximum != defaultBufferMaximum ||
 		cap(splunkLoggerDriver.stream) != defaultStreamChannelSize {
 		t.Fatal("Values do not match configuration.")
 	}
@@ -466,16 +466,16 @@ func TestRawFormat(t *testing.T) {
 		t.Fatal("Unexpected Splunk Logging Driver type")
 	}
 
-	if splunkLoggerDriver.url != hec.URL()+"/services/collector/event/1.0" ||
-		splunkLoggerDriver.auth != "Splunk "+hec.token ||
+	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
+		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
 		splunkLoggerDriver.nullMessage.SourceType != "" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
-		splunkLoggerDriver.gzipCompression != false ||
-		splunkLoggerDriver.postMessagesFrequency != defaultPostMessagesFrequency ||
-		splunkLoggerDriver.postMessagesBatchSize != defaultPostMessagesBatchSize ||
-		splunkLoggerDriver.bufferMaximum != defaultBufferMaximum ||
+		splunkLoggerDriver.hec.gzipCompression != false ||
+		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
+		splunkLoggerDriver.hec.postMessagesBatchSize != defaultPostMessagesBatchSize ||
+		splunkLoggerDriver.hec.bufferMaximum != defaultBufferMaximum ||
 		cap(splunkLoggerDriver.stream) != defaultStreamChannelSize ||
 		string(splunkLoggerDriver.prefix) != "containeriid " {
 		t.Fatal("Values do not match configuration.")
@@ -580,16 +580,16 @@ func TestRawFormatWithLabels(t *testing.T) {
 		t.Fatal("Unexpected Splunk Logging Driver type")
 	}
 
-	if splunkLoggerDriver.url != hec.URL()+"/services/collector/event/1.0" ||
-		splunkLoggerDriver.auth != "Splunk "+hec.token ||
+	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
+		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
 		splunkLoggerDriver.nullMessage.SourceType != "" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
-		splunkLoggerDriver.gzipCompression != false ||
-		splunkLoggerDriver.postMessagesFrequency != defaultPostMessagesFrequency ||
-		splunkLoggerDriver.postMessagesBatchSize != defaultPostMessagesBatchSize ||
-		splunkLoggerDriver.bufferMaximum != defaultBufferMaximum ||
+		splunkLoggerDriver.hec.gzipCompression != false ||
+		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
+		splunkLoggerDriver.hec.postMessagesBatchSize != defaultPostMessagesBatchSize ||
+		splunkLoggerDriver.hec.bufferMaximum != defaultBufferMaximum ||
 		cap(splunkLoggerDriver.stream) != defaultStreamChannelSize ||
 		string(splunkLoggerDriver.prefix) != "containeriid a=b " {
 		t.Fatal("Values do not match configuration.")
@@ -692,16 +692,16 @@ func TestRawFormatWithoutTag(t *testing.T) {
 		t.Fatal("Unexpected Splunk Logging Driver type")
 	}
 
-	if splunkLoggerDriver.url != hec.URL()+"/services/collector/event/1.0" ||
-		splunkLoggerDriver.auth != "Splunk "+hec.token ||
+	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
+		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
 		splunkLoggerDriver.nullMessage.SourceType != "" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
-		splunkLoggerDriver.gzipCompression != false ||
-		splunkLoggerDriver.postMessagesFrequency != defaultPostMessagesFrequency ||
-		splunkLoggerDriver.postMessagesBatchSize != defaultPostMessagesBatchSize ||
-		splunkLoggerDriver.bufferMaximum != defaultBufferMaximum ||
+		splunkLoggerDriver.hec.gzipCompression != false ||
+		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
+		splunkLoggerDriver.hec.postMessagesBatchSize != defaultPostMessagesBatchSize ||
+		splunkLoggerDriver.hec.bufferMaximum != defaultBufferMaximum ||
 		cap(splunkLoggerDriver.stream) != defaultStreamChannelSize ||
 		string(splunkLoggerDriver.prefix) != "" {
 		t.Log(string(splunkLoggerDriver.prefix) + "a")

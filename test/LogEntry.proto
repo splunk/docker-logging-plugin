@@ -1,0 +1,6 @@
+ message LogEntry { 
+    optional string source = 1; 
+    optional int64 time_nano = 2; 
+    required bytes line = 3; 
+    optional bool partial = 4; 
+}
