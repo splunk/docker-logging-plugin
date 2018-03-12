@@ -18,6 +18,7 @@ logger.addHandler(handler)
     (" ", 0),  # should not be sent to splunk
     ("\xF0\xA4\xAD", 1),  # non utf-8 decodable chars should still make it to splunk
     ("hello", 1),  # normal string should always to sent to splunk
+    ("{'test': 'incomplete}", 1) # malformed json string should still be sent to splunk
 ])
 def test_malformed_empty_string(setup, test_input, expected):
     '''
