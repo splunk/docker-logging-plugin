@@ -17,7 +17,7 @@ const (
 	// Partial log hold duration (if we are not reaching max buffer size)
 	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
 	// Maximum buffer size for partial logging
-	defaultPartialMsgBufferMaximum = 1000000
+	defaultPartialMsgBufferMaximum = 1024 * 1024
 )
 
 const (
