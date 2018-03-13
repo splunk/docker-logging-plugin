@@ -48,7 +48,7 @@ def write_proto_buf_message(fifo_writer=None,
     log = LogEntry_pb2.LogEntry()
     log.source = source
     log.time_nano = time_nano
-    log.line = bytes(message)
+    log.line = bytes(message, "utf8")
     log.partial = partial
 
     buf = log.SerializeToString(log)
@@ -60,6 +60,9 @@ def write_proto_buf_message(fifo_writer=None,
     fifo_writer.write(buf)
 
     fifo_writer.flush()
+
+def close_fifo(fifo_writer):
+    '''close a file'''
     fifo_writer.close()
 
 

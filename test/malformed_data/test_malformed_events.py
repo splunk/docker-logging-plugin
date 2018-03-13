@@ -5,7 +5,8 @@ import logging
 import sys
 from common import open_fifo,\
     write_proto_buf_message, request_start_logging, \
-    check_events_from_splunk, request_stop_logging
+    check_events_from_splunk, request_stop_logging, \
+    close_fifo
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -37,6 +38,8 @@ def test_malformed_empty_string(setup, test_input, expected):
 
     logger.info("Writing data in protobuf with source=%s", u_id)
     write_proto_buf_message(f_writer, message=test_input, source=u_id)
+    close_fifo(f_writer)
+
     request_start_logging(file_path, setup["splunk_hec_url"], setup["splunk_hec_token"])
 
     # wait for 10 seconds to allow messages to be sent

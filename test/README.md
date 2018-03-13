@@ -2,10 +2,11 @@
 * The plugin binary should exist on the system and it should be able to run with the user you run the pytest.
 * A Splunk instance (HEC port and splunkd port) should be accessible by the pytest.
 * Splunk HEC token should not overwrite index. The tests relies on "index=main"
+* Python version must be > 3.x
 
 # Testing Instructions
 0. (Optional) Use a virtual environment for the test  
-    `virtualenv --python=python3.5 venv`  
+    `virtualenv --python=python3.6 venv`  
     `source venv/bin/activate`
 1. Install the dependencies  
     `pip install -r requirements.txt`  
