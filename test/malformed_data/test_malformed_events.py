@@ -17,9 +17,10 @@ logger.addHandler(handler)
 @pytest.mark.parametrize("test_input,expected", [
     ("", 0),  # should not be sent to splunk
     (" ", 0),  # should not be sent to splunk
-    ("\xF0\xA4\xAD", 1),  # non utf-8 decodable chars should still make it to splunk
+    ("\xF0\xA4\xAD", 1),  # non utf-8 decodable chars should make it to splunk
     ("hello", 1),  # normal string should always to sent to splunk
-    ("{'test': 'incomplete}", 1) # malformed json string should still be sent to splunk
+    ("{'test': 'incomplete}", 1)  # malformed json string should
+                                  # be sent to splunk
 ])
 def test_malformed_empty_string(setup, test_input, expected):
     '''
@@ -40,7 +41,9 @@ def test_malformed_empty_string(setup, test_input, expected):
     write_proto_buf_message(f_writer, message=test_input, source=u_id)
     close_fifo(f_writer)
 
-    request_start_logging(file_path, setup["splunk_hec_url"], setup["splunk_hec_token"])
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"])
 
     # wait for 10 seconds to allow messages to be sent
     time.sleep(10)

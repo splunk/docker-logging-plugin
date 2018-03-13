@@ -12,8 +12,10 @@ from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
 TIMEROUT = 500
-SOCKET_START_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StartLogging"
-SOCKET_STOP_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/LogDriver.StopLogging"
+SOCKET_START_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/" \
+                    "LogDriver.StartLogging"
+SOCKET_STOP_URL = "http+unix://%2Frun%2Fdocker%2Fplugins%2Fsplunklog.sock/" \
+                  "LogDriver.StopLogging"
 
 
 def start_logging_plugin(plugin_path):
@@ -60,6 +62,7 @@ def write_proto_buf_message(fifo_writer=None,
     fifo_writer.write(buf)
 
     fifo_writer.flush()
+
 
 def close_fifo(fifo_writer):
     '''close a file'''
