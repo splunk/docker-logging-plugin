@@ -115,11 +115,6 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, pBuffer *pmsgBuffer, 
 		return false
 	}
 
-	msg.Line = buf.Line
-	msg.Source = buf.Source
-	msg.Partial = buf.Partial
-	msg.Timestamp = time.Unix(0, buf.TimeNano)
-
 	if !buf.Partial || pBuffer.bufferMaximum <= pBufferSize {
 		// Only send if partial bit is not set or partial buffer size reached max
 		msg.Line = pBuffer.pmsg.Bytes()
