@@ -18,7 +18,16 @@ const (
 	defaultPartialMsgBufferMaximum = 1000000
 )
 
-// TODO: implement partial logs and multiline logs logic
+const (
+	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_PARTIAL_MESSAGES_HOLD_DURATION"
+	envVarPartialMsgBufferMaximum = "SPLUNK_LOGGING_DRIVER_PARTIAL_MESSAGES_BUFFER_SIZE"
+)
+
+var (
+	partialMsgBufferHoldDuration = getAdvancedOptionDuration(envVarPartialMsgBufferHoldDuration, defaultPartialMsgBufferHoldDuration)
+	partialMsgBufferMaximum = getAdvancedOptionInt(envVarPartialMsgBufferMaximum, defaultPartialMsgBufferMaximum)
+)
+
 type messageProcessor struct {
 	prevMesssage logdriver.LogEntry
 }
@@ -30,8 +39,8 @@ func newMessageProcessor() *messageProcessor {
 func (mg messageProcessor) process(lf *logPair) {
 	// Initialize partial msg struct
 	pm := pmsgBuffer{
-		bufferHoldDuration:defaultPartialMsgBufferHoldDuration,
-		bufferMaximum:defaultPartialMsgBufferMaximum,
+		bufferHoldDuration: partialMsgBufferHoldDuration,
+		bufferMaximum: partialMsgBufferMaximum,
 	}
 	consumeLog(lf, &pm)
 }
