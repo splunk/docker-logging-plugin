@@ -72,12 +72,12 @@ def __write_to_fifo(fifo_path, test_input, u_id, timeout):
     time.sleep(0.1)
     for message, partial in test_input:
         logger.info("Writing data in protobuf with source=%s", u_id)
+        if timeout != 0:
+            time.sleep(timeout)
         __write_proto_buf_message(f_writer,
                                   message=message,
                                   partial=partial,
                                   source=u_id)
-        if timeout != 0:
-            time.sleep(timeout)
 
     __close_fifo(f_writer)
 
