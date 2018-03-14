@@ -40,26 +40,29 @@ func newMessageProcessor() *messageProcessor {
 
 func (mg messageProcessor) process(lf *logPair) {
 	logrus.Debug("Start to consume log")
-	// Initialize partial msg buffer
-	pm := pmsgBuffer{
-		bufferHoldDuration: partialMsgBufferHoldDuration,
-		bufferMaximum: partialMsgBufferMaximum,
-	}
-	consumeLog(lf, &pm)
+	consumeLog(lf)
 }
 
 type pmsgBuffer struct {
 	pmsg bytes.Buffer
 	bufferHoldDuration time.Duration
 	bufferMaximum         int
+	bufferReset			bool
 }
 
 /*
 This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
-func consumeLog(lf *logPair, pBuffer *pmsgBuffer) {
-	timer := time.NewTicker(pBuffer.bufferHoldDuration)
+func consumeLog(lf *logPair) {
+	// Initialize partial msg buffer
+	pBuf := pmsgBuffer{
+		bufferHoldDuration: partialMsgBufferHoldDuration,
+		bufferMaximum: partialMsgBufferMaximum,
+		bufferReset: false,
+	}
+	//Create timer for pbuffer hold duration
+	timer := time.NewTicker(pBuf.bufferHoldDuration)
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -78,7 +81,15 @@ func consumeLog(lf *logPair, pBuffer *pmsgBuffer) {
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-
+		// Add msg to partial buffer and disable buffer reset flag
+		pBufferSize, err := pBuf.pmsg.Write(buf.Line)
+		pBuf.bufferReset = false
+		if err != nil {
+			logrus.WithField("id", lf.info.ContainerID).WithError(err).WithField("Buffer size:",
+				pBufferSize).Error("Error appending to buffer")
+			continue
+		}
+		// Check for partial buffer timer
 		select {
 		case t := <- timer.C:
 			if buf.Partial {
@@ -90,11 +101,16 @@ func consumeLog(lf *logPair, pBuffer *pmsgBuffer) {
 			// No-op
 		}
 
-		if sendMessage(lf.splunkl, &buf, pBuffer, lf.info.ContainerID) == false {
+		if sendMessage(lf.splunkl, &buf, &pBuf, lf.info.ContainerID) == false {
 			continue
 		}
-		if sendMessage(lf.jsonl, &buf, pBuffer, lf.info.ContainerID) == false {
+
+		if sendMessage(lf.jsonl, &buf, &pBuf, lf.info.ContainerID) == false {
 			continue
+		}
+		//partial buffer reset
+		if pBuf.bufferReset {
+			pBuf.pmsg.Reset()
 		}
 		buf.Reset()
 	}
@@ -107,14 +123,6 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, pBuffer *pmsgBuffer, 
 	if !shouldSendMessage(buf.Line) {
 		return false
 	}
-
-	pBufferSize, err := pBuffer.pmsg.Write(buf.Line)
-	if err != nil {
-		logrus.WithField("id", containerid).WithError(err).WithField("Buffer size:",
-			pBufferSize).Error("Error appending to buffer")
-		return false
-	}
-
 	if !buf.Partial || pBuffer.bufferMaximum <= pBuffer.pmsg.Len() {
 		// Only send if partial bit is not set or partial buffer size reached max
 		msg.Line = pBuffer.pmsg.Bytes()
@@ -128,7 +136,7 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, pBuffer *pmsgBuffer, 
 				msg).Error("Error writing log message")
 			return false
 		}
-		pBuffer.pmsg.Reset()
+		pBuffer.bufferReset = true
 	}
 	return true
 }
