@@ -9,7 +9,7 @@ from common import request_start_logging,  \
 
 
 @pytest.mark.parametrize("test_input, expected", [
-   ([("start", True), ("mid", True), ("end", False)], 1),
+   ([("start", True), ("in the middle", True), ("end", False)], 1),
    ([("start2", False), ("new start", True), ("end2", False)], 2)
 ])
 def test_partial_log(setup, test_input, expected):
