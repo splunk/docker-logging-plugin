@@ -1,20 +1,11 @@
 import pytest
 import time
 import uuid
-import logging
-import sys
 import os
-from common import request_start_logging, \
+import logging
+from common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
     start_log_producer_from_input, start_log_producer_from_file
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s - %(name)s -' +
-                              ' %(levelname)s - %(message)s')
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 
 @pytest.mark.parametrize("test_input, expected", [
@@ -27,7 +18,7 @@ def test_partial_log(setup, test_input, expected):
     Expected behavior is that the plugin keeps appending the message
     hen partial flag is True and stop and flush when it reaches False
     '''
-    logger.info("testing test_partial_log input={0} \
+    logging.getLogger().info("testing test_partial_log input={0} \
                 expected={1} event(s)".format(test_input, expected))
     u_id = str(uuid.uuid4())
 
@@ -47,8 +38,9 @@ def test_partial_log(setup, test_input, expected):
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
-    logger.info("Splunk received %s events in the last minute with u_id=%s",
-                len(events), u_id)
+    logging.getLogger().info("Splunk received %s events in \
+                             the last minute with u_id=%s",
+                             len(events), u_id)
     assert len(events) == expected
 
 
@@ -62,7 +54,7 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
     log. If the next partial message didn't arrive in expected
     time (default 1 sec), it should flush the buffer anyway
     '''
-    logger.info("testing test_partial_log_flush_timeout input={0} \
+    logging.getLogger().info("testing test_partial_log_flush_timeout input={0} \
                 expected={1} event(s)".format(test_input, expected))
     u_id = str(uuid.uuid4())
 
@@ -83,7 +75,7 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
-    logger.info("Splunk received %s events in the last minute with u_id=%s",
+    logging.getLogger().info("Splunk received %s events in the last minute with u_id=%s",
                 len(events), u_id)
     assert len(events) == expected
 
@@ -93,7 +85,7 @@ def test_partial_log_flush_size_limit(setup):
     Test that the logging plugin can flush the buffer when it reaches
     the buffer size limit (1mb)
     '''
-    logger.info("testing test_partial_log_flush_size_limit")
+    logging.getLogger().info("testing test_partial_log_flush_size_limit")
     u_id = str(uuid.uuid4())
 
     file_path = setup["fifo_path"]
@@ -117,7 +109,7 @@ def test_partial_log_flush_size_limit(setup):
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
-    logger.info("Splunk received %s events in the last minute with u_id=%s",
+    logging.getLogger().info("Splunk received %s events in the last minute with u_id=%s",
                 len(events), u_id)
 
     assert len(events) == 2

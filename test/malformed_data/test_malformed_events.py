@@ -2,15 +2,9 @@ import pytest
 import time
 import uuid
 import logging
-import sys
-from common import request_start_logging, \
+from common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
     start_log_producer_from_input
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler(sys.stdout)
-logger.addHandler(handler)
 
 
 @pytest.mark.parametrize("test_input,expected", [
@@ -30,7 +24,7 @@ def test_malformed_empty_string(setup, test_input, expected):
         * Non empty strings should be sent to Splunk
         * Non UTF-8 decodable string should still be sent to Splunk
     '''
-    logger.info("testing test_malformed_empty_string input={0} \
+    logging.getLogger().info("testing test_malformed_empty_string input={0} \
                 expected={1} event(s)".format(test_input, expected))
     u_id = str(uuid.uuid4())
 
@@ -51,6 +45,6 @@ def test_malformed_empty_string(setup, test_input, expected):
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
-    logger.info("Splunk received %s events in the last minute with u_id=%s",
-                len(events), u_id)
+    logging.getLogger().info("Splunk received %s events in the last minute with u_id=%s",
+                             len(events), u_id)
     assert len(events) == expected
