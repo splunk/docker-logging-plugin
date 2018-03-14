@@ -3,10 +3,9 @@ import time
 import uuid
 import logging
 import sys
-from common import open_fifo,\
-    write_proto_buf_message, request_start_logging, \
+from common import request_start_logging, \
     check_events_from_splunk, request_stop_logging, \
-    close_fifo
+    start_log_producer_from_input
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -15,12 +14,13 @@ logger.addHandler(handler)
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    ("", 0),  # should not be sent to splunk
-    (" ", 0),  # should not be sent to splunk
-    ("\xF0\xA4\xAD", 1),  # non utf-8 decodable chars should make it to splunk
-    ("hello", 1),  # normal string should always to sent to splunk
-    ("{'test': 'incomplete}", 1)  # malformed json string should
-                                  # be sent to splunk
+    ([("", False)], 0),  # should not be sent to splunk
+    ([(" ", False)], 0),  # should not be sent to splunk
+    ([("\xF0\xA4\xAD", False)], 1),  # non utf-8 decodable chars
+                                     # should make it to splunk
+    ([("hello", False)], 1),  # normal string should always to sent to splunk
+    ([("{'test': 'incomplete}", False)], 1)  # malformed json string should
+                                             # be sent to splunk
 ])
 def test_malformed_empty_string(setup, test_input, expected):
     '''
@@ -35,11 +35,7 @@ def test_malformed_empty_string(setup, test_input, expected):
     u_id = str(uuid.uuid4())
 
     file_path = setup["fifo_path"]
-    f_writer = open_fifo(file_path)
-
-    logger.info("Writing data in protobuf with source=%s", u_id)
-    write_proto_buf_message(f_writer, message=test_input, source=u_id)
-    close_fifo(f_writer)
+    start_log_producer_from_input(file_path, test_input, u_id)
 
     request_start_logging(file_path,
                           setup["splunk_hec_url"],

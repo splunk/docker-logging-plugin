@@ -6,6 +6,7 @@ import subprocess
 import struct
 import requests
 import os
+from multiprocessing import Pool
 import requests_unixsocket
 from requests.packages.urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
@@ -31,8 +32,62 @@ def kill_logging_plugin(plugin_path):
     os.system("killall " + plugin_path)
 
 
+def start_log_producer_from_input(file_path, test_input, u_id, timeout=0):
+    pool = Pool(processes=1)              # Start a worker processes.
+    pool.apply_async(__write_to_fifo, [file_path, test_input, u_id, timeout])
+
+
+def start_log_producer_from_file(file_path, u_id, input_file):
+    pool = Pool(processes=1)              # Start a worker processes.
+    pool.apply_async(__write_file_to_fifo, [file_path, u_id, input_file])
+
+
+def __write_to_fifo(fifo_path, test_input, u_id, timeout):
+    f_writer = open_fifo(fifo_path)
+
+    time.sleep(1)
+    for message, partial in test_input:
+        logger.info("Writing data in protobuf with source=%s", u_id)
+        write_proto_buf_message(f_writer,
+                                message=message,
+                                partial=partial,
+                                source=u_id)
+        if timeout != 0:
+            time.sleep(timeout)
+
+    close_fifo(f_writer)
+
+
+def __write_file_to_fifo(fifo_path, u_id, input_file):
+    f_writer = open_fifo(fifo_path)
+
+    logger.info("Writing data in protobuf with source=%s", u_id)
+
+    message = ""
+    with open(input_file, "r") as f:
+        message = f.read(15360)  # 15kb
+        while not message.endswith("\n"):
+            write_proto_buf_message(f_writer,
+                                    message=message,
+                                    partial=True,
+                                    source=u_id)
+            message = f.read(15360)
+        # write the remaining
+        write_proto_buf_message(f_writer,
+                                message=message,
+                                partial=False,
+                                source=u_id)
+
+    f.close()
+    close_fifo(f_writer)
+
+
 def open_fifo(fifo_location):
     '''create and open a file'''
+    if os.path.exists(fifo_location):
+        os.unlink(fifo_location)
+
+    os.mkfifo(fifo_location)
     fifo_writer = open(fifo_location, 'wb')
 
     return fifo_writer
@@ -60,12 +115,12 @@ def write_proto_buf_message(fifo_writer=None,
     struct.pack_into(">i", size_buffer, 0, size)
     fifo_writer.write(size_buffer)
     fifo_writer.write(buf)
-
     fifo_writer.flush()
 
 
 def close_fifo(fifo_writer):
     '''close a file'''
+    # os.close(fifo_writer)
     fifo_writer.close()
 
 
