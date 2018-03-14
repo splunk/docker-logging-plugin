@@ -66,10 +66,9 @@ def start_log_producer_from_file(file_path, u_id, input_file):
     pool.apply_async(__write_file_to_fifo, [file_path, u_id, input_file])
 
 
-def __write_to_fifo(fifo_path, test_input, u_id, timeout):
+def __write_to_fifo(fifo_path, test_input, u_id, timeout=0):
     f_writer = __open_fifo(fifo_path)
 
-    time.sleep(0.1)
     for message, partial in test_input:
         logger.info("Writing data in protobuf with source=%s", u_id)
         if timeout != 0:
