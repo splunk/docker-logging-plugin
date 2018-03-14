@@ -69,7 +69,7 @@ def start_log_producer_from_file(file_path, u_id, input_file):
 def __write_to_fifo(fifo_path, test_input, u_id, timeout):
     f_writer = __open_fifo(fifo_path)
 
-    time.sleep(1)
+    time.sleep(0.1)
     for message, partial in test_input:
         logger.info("Writing data in protobuf with source=%s", u_id)
         __write_proto_buf_message(f_writer,
