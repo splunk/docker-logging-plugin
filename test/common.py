@@ -147,22 +147,32 @@ def __close_fifo(fifo_writer):
     fifo_writer.close()
 
 
-def request_start_logging(file_path, hec_url, hec_token):
+def request_start_logging(file_path, hec_url, hec_token, options={}):
     '''
     send a request to the plugin to start logging
-    @param: file_path
+    :param file_path: the file path
+    :type file_path: string
+
+    :param hec_url: the file path
+    :type hec_url: string
+
+    :param hec_token: the file path
+    :type hec_token: string
     '''
+    config = {}
+    config["splunk-url"] = hec_url
+    config["splunk-token"] = hec_token
+    config["splunk-insecureskipverify"] = "true"
+    config["splunk-format"] = "json"
+    config["tag"] = ""
+
+    config = {**config, **options}
+
     req_obj = {
         "File": file_path,
         "Info": {
             "ContainerID": "test",
-            "Config": {
-                "splunk-url": hec_url,
-                "splunk-token": hec_token,
-                "splunk-insecureskipverify": "true",
-                "splunk-format": "json",
-                "tag": ""
-            },
+            "Config": config,
             "LogPath": "/home/ec2-user/test.txt"
         }
     }

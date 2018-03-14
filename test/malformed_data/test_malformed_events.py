@@ -2,7 +2,7 @@ import pytest
 import time
 import uuid
 import logging
-from common import request_start_logging,  \
+from ..common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
     start_log_producer_from_input
 

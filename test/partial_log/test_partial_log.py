@@ -3,14 +3,14 @@ import time
 import uuid
 import os
 import logging
-from common import request_start_logging,  \
+from ..common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
     start_log_producer_from_input, start_log_producer_from_file
 
 
 @pytest.mark.parametrize("test_input, expected", [
-   ([("start", True), ("in the middle", True), ("end", False)], 1),
-   ([("start2", False), ("new start", True), ("end2", False)], 2)
+    ([("start", True), ("in the middle", True), ("end", False)], 1),
+    ([("start2", False), ("new start", True), ("end2", False)], 2)
 ])
 def test_partial_log(setup, test_input, expected):
     '''
