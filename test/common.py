@@ -47,6 +47,7 @@ def start_log_producer_from_input(file_path, test_input, u_id, timeout=0):
     Spawn a thread to write logs to fifo from the given test input
     @param: file_path
     @param: test_input
+            type: array of tuples of (string, Boolean)
     @param: u_id
     @param: timeout
     '''
@@ -191,7 +192,7 @@ def request_start_logging(file_path, hec_url, hec_token, options={}):
     if res.status_code != 200:
         raise Exception("Can't establish socket connection")
 
-    logger.info(str(res))
+    logger.info(res.json())
 
 
 def request_stop_logging(file_path):
@@ -210,7 +211,7 @@ def request_stop_logging(file_path):
     if res.status_code != 200:
         raise Exception("Can't establish socket connection")
 
-    logger.info(str(res))
+    logger.info(res.json())
 
 
 def check_events_from_splunk(index="main",

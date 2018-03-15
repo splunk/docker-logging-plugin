@@ -45,6 +45,7 @@ def test_malformed_empty_string(setup, test_input, expected):
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
-    logging.getLogger().info("Splunk received %s events in the last minute with u_id=%s",
+    logging.getLogger().info("Splunk received %s events in the last minute " +
+                             "with u_id=%s",
                              len(events), u_id)
     assert len(events) == expected
