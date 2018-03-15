@@ -52,13 +52,19 @@ const (
 	defaultBufferMaximum = 10 * defaultPostMessagesBatchSize
 	// Number of messages allowed to be queued in the channel
 	defaultStreamChannelSize = 4 * defaultPostMessagesBatchSize
+	// Partial log hold duration (if we are not reaching max buffer size)
+	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
+	// Maximum buffer size for partial logging
+	defaultPartialMsgBufferMaximum = 1024 * 1024
 )
 
 const (
-	envVarPostMessagesFrequency = "SPLUNK_LOGGING_DRIVER_POST_MESSAGES_FREQUENCY"
-	envVarPostMessagesBatchSize = "SPLUNK_LOGGING_DRIVER_POST_MESSAGES_BATCH_SIZE"
-	envVarBufferMaximum         = "SPLUNK_LOGGING_DRIVER_BUFFER_MAX"
-	envVarStreamChannelSize     = "SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE"
+	envVarPostMessagesFrequency        = "SPLUNK_LOGGING_DRIVER_POST_MESSAGES_FREQUENCY"
+	envVarPostMessagesBatchSize        = "SPLUNK_LOGGING_DRIVER_POST_MESSAGES_BATCH_SIZE"
+	envVarBufferMaximum                = "SPLUNK_LOGGING_DRIVER_BUFFER_MAX"
+	envVarStreamChannelSize            = "SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE"
+	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_PARTIAL_MESSAGES_HOLD_DURATION"
+	envVarPartialMsgBufferMaximum      = "SPLUNK_LOGGING_DRIVER_PARTIAL_MESSAGES_BUFFER_SIZE"
 )
 
 type splunkLoggerInterface interface {

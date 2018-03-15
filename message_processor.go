@@ -13,21 +13,9 @@ import (
 	protoio "github.com/gogo/protobuf/io"
 )
 
-const (
-	// Partial log hold duration (if we are not reaching max buffer size)
-	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
-	// Maximum buffer size for partial logging
-	defaultPartialMsgBufferMaximum = 1024 * 1024
-)
-
-const (
-	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_PARTIAL_MESSAGES_HOLD_DURATION"
-	envVarPartialMsgBufferMaximum = "SPLUNK_LOGGING_DRIVER_PARTIAL_MESSAGES_BUFFER_SIZE"
-)
-
 var (
 	partialMsgBufferHoldDuration = getAdvancedOptionDuration(envVarPartialMsgBufferHoldDuration, defaultPartialMsgBufferHoldDuration)
-	partialMsgBufferMaximum = getAdvancedOptionInt(envVarPartialMsgBufferMaximum, defaultPartialMsgBufferMaximum)
+	partialMsgBufferMaximum      = getAdvancedOptionInt(envVarPartialMsgBufferMaximum, defaultPartialMsgBufferMaximum)
 )
 
 type messageProcessor struct {
@@ -44,10 +32,28 @@ func (mg messageProcessor) process(lf *logPair) {
 }
 
 type pmsgBuffer struct {
-	pmsg bytes.Buffer
+	pmsg               bytes.Buffer
 	bufferHoldDuration time.Duration
-	bufferMaximum         int
-	bufferReset			bool
+	bufferMaximum      int
+	bufferReset        bool
+}
+
+func appendToPartialBuffer(p *pmsgBuffer, b *logdriver.LogEntry) {
+	// Add msg to partial buffer and disable buffer reset flag
+	ps, err := p.pmsg.Write(b.Line)
+	p.bufferReset = false
+	if err != nil {
+		logrus.WithError(err).WithField("Buffer size:", ps).Error("Error appending to buffer")
+	}
+}
+
+func isPartialBufferHoldDurationExpired(t <-chan time.Time) bool {
+	select {
+	case <-t:
+		return true
+	default:
+		return false
+	}
 }
 
 /*
@@ -58,8 +64,8 @@ func consumeLog(lf *logPair) {
 	// Initialize partial msg buffer
 	pBuf := pmsgBuffer{
 		bufferHoldDuration: partialMsgBufferHoldDuration,
-		bufferMaximum: partialMsgBufferMaximum,
-		bufferReset: false,
+		bufferMaximum:      partialMsgBufferMaximum,
+		bufferReset:        false,
 	}
 	//Create timer for pbuffer hold duration
 	timer := time.NewTicker(pBuf.bufferHoldDuration)
@@ -81,24 +87,12 @@ func consumeLog(lf *logPair) {
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-		// Add msg to partial buffer and disable buffer reset flag
-		pBufferSize, err := pBuf.pmsg.Write(buf.Line)
-		pBuf.bufferReset = false
-		if err != nil {
-			logrus.WithField("id", lf.info.ContainerID).WithError(err).WithField("Buffer size:",
-				pBufferSize).Error("Error appending to buffer")
-			continue
-		}
-		// Check for partial buffer timer
-		select {
-		case t := <- timer.C:
-			if buf.Partial {
-				logrus.WithField("id", lf.info.ContainerID).WithField("Buffer timer expired:", t).
-					Debug("Force partial bit to false due to buffer hold duration expiry")
-				buf.Partial = false
-			}
-		default:
-			// No-op
+		// Apprend to partial buffer
+		appendToPartialBuffer(&pBuf, &buf)
+		// Check buffer hold duration
+		if isPartialBufferHoldDurationExpired(timer.C) && buf.Partial {
+			logrus.Debug("Force partial bit to false due to buffer hold duration expiry")
+			buf.Partial = false
 		}
 
 		if sendMessage(lf.splunkl, &buf, &pBuf, lf.info.ContainerID) == false {
