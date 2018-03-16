@@ -1,6 +1,7 @@
 import pytest
 import time
 import uuid
+import os
 import logging
 from urllib.parse import urlparse
 from ..common import request_start_logging,  \
@@ -141,15 +142,22 @@ def test_splunk_source_type(setup, test_input, expected):
 
 
 def test_splunk_ca(setup):
+    '''
+    Test that docker logging plugin can use the server certificate to
+    verify the server identity
+
+    The server cert used here is the default CA shipping in splunk
+    '''
     logging.getLogger().info("testing test_splunk_ca")
     u_id = str(uuid.uuid4())
 
     file_path = setup["fifo_path"]
     start_log_producer_from_input(file_path, [("test ca", False)], u_id)
+    current_dir = os.path.dirname(os.path.realpath(__file__))
 
     options = {
         "splunk-insecureskipverify": "false",
-        "splunk-capath": "config_params/cacert.pem",
+        "splunk-capath": current_dir + "/cacert.pem",
         "splunk-caname": "SplunkServerDefaultCert"
     }
 
