@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	partialMsgBufferHoldDuration = getAdvancedOptionDuration(envVarPartialMsgBufferHoldDuration, defaultPartialMsgBufferHoldDuration)
-	partialMsgBufferMaximum      = getAdvancedOptionInt(envVarPartialMsgBufferMaximum, defaultPartialMsgBufferMaximum)
+	tempMsgBufferHoldDuration = getAdvancedOptionDuration(envVarTempMsgBufferHoldDuration, defaultTempMsgBufferHoldDuration)
+	tempMsgBufferMaximum      = getAdvancedOptionInt(envVarTempMsgBufferMaximum, defaultTempMsgBufferMaximum)
 )
 
 type messageProcessor struct {
@@ -31,19 +31,19 @@ func (mg messageProcessor) process(lf *logPair) {
 	consumeLog(lf)
 }
 
-type pmsgBuffer struct {
-	pmsg               bytes.Buffer
-	bufferHoldDuration time.Duration
-	bufferMaximum      int
-	bufferReset        bool
+type tmpBuffer struct {
+	tBuf                      bytes.Buffer
+	bufferReset               bool
+	bufferHoldDurationExpired bool
 }
 
-func appendToPartialBuffer(p *pmsgBuffer, b *logdriver.LogEntry) {
-	// Add msg to partial buffer and disable buffer reset flag
-	ps, err := p.pmsg.Write(b.Line)
+func appendToTempBuffer(p *tmpBuffer, b *logdriver.LogEntry) {
+	// Add msg to temp buffer and disable buffer reset flag
+	ps, err := p.tBuf.Write(b.Line)
 	p.bufferReset = false
 	if err != nil {
-		logrus.WithError(err).WithField("Buffer size:", ps).Error("Error appending to buffer")
+		logrus.WithError(err).WithField("Appending to Temp Buffer with size:", ps).Error(
+			"Error appending to buffer")
 	}
 }
 
@@ -52,14 +52,13 @@ This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
 func consumeLog(lf *logPair) {
-	// Initialize partial msg buffer
-	pBuf := &pmsgBuffer{
-		bufferHoldDuration: partialMsgBufferHoldDuration,
-		bufferMaximum:      partialMsgBufferMaximum,
-		bufferReset:        false,
+	// Initialize temp buffer
+	tmpBuf := &tmpBuffer{
+		bufferReset:               false,
+		bufferHoldDurationExpired: false,
 	}
 	//Create timer for pbuffer hold duration
-	partialBufferTimer := time.Now()
+	tempBufferTimer := time.Now()
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -78,41 +77,44 @@ func consumeLog(lf *logPair) {
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-		// Append to partial buffer
-		appendToPartialBuffer(pBuf, &buf)
-		// Check buffer hold duration
-		diff := time.Now().Sub(partialBufferTimer)
-		// Force partial bit if partial buffer hold timer expires
-		if buf.Partial && diff > partialMsgBufferHoldDuration {
-			logrus.Debug("Force partial bit to false due to buffer hold duration expiry")
-			buf.Partial = false
+		// Append to temp buffer
+		appendToTempBuffer(tmpBuf, &buf)
+		// Check for temp buffer timer expiration
+		diff := time.Now().Sub(tempBufferTimer)
+		if diff > tempMsgBufferHoldDuration {
+			tmpBuf.bufferHoldDurationExpired = true
 		}
 
-		if !sendMessage(lf.splunkl, &buf, pBuf, lf.info.ContainerID) {
+		if !sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID) {
 			continue
 		}
 
-		if !sendMessage(lf.jsonl, &buf, pBuf, lf.info.ContainerID) {
+		if !sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID) {
 			continue
 		}
-		//partial buffer reset
-		if pBuf.bufferReset {
-			pBuf.pmsg.Reset()
-			partialBufferTimer = time.Now()
+		//temp buffer and values reset
+		if tmpBuf.bufferReset {
+			tmpBuf.tBuf.Reset()
+			tempBufferTimer = time.Now()
+			tmpBuf.bufferHoldDurationExpired = false
 		}
 		buf.Reset()
 	}
 }
 
 // send the log entry message to logger
-func sendMessage(l logger.Logger, buf *logdriver.LogEntry, pBuffer *pmsgBuffer, containerid string) bool {
+func sendMessage(l logger.Logger, buf *logdriver.LogEntry, tBuffer *tmpBuffer, containerid string) bool {
 	var msg logger.Message
 	if !shouldSendMessage(buf.Line) {
 		return false
 	}
-	if !buf.Partial || pBuffer.bufferMaximum <= pBuffer.pmsg.Len() {
-		// Only send if partial bit is not set or partial buffer size reached max
-		msg.Line = pBuffer.pmsg.Bytes()
+	if !buf.Partial || tBuffer.bufferHoldDurationExpired || tempMsgBufferMaximum <= tBuffer.tBuf.Len() {
+		// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
+		logrus.WithField("id", containerid).WithField("Buffer partial flag should be false:",
+			buf.Partial).WithField("Temp buffer hold duration expired should be true:",
+			tBuffer.bufferHoldDurationExpired).WithField("Temp buffer Length:",
+			tBuffer.tBuf.Len()).Debug("Buffer details")
+		msg.Line = tBuffer.tBuf.Bytes()
 		msg.Source = buf.Source
 		msg.Partial = buf.Partial
 		msg.Timestamp = time.Unix(0, buf.TimeNano)
@@ -123,7 +125,7 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, pBuffer *pmsgBuffer, 
 				msg).Error("Error writing log message")
 			return false
 		}
-		pBuffer.bufferReset = true
+		tBuffer.bufferReset = true
 	}
 	return true
 }
