@@ -2,6 +2,7 @@ import pytest
 import time
 import uuid
 import logging
+from urllib.parse import urlparse
 from ..common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
     start_log_producer_from_input
@@ -137,3 +138,47 @@ def test_splunk_source_type(setup, test_input, expected):
                              " with u_id=%s",
                              len(events), u_id)
     assert len(events) == expected
+
+
+def test_splunk_ca(setup):
+    logging.getLogger().info("testing test_splunk_ca")
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test ca", False)], u_id)
+
+    options = {
+        "splunk-insecureskipverify": "false",
+        "splunk-capath": "config_params/cacert.pem",
+        "splunk-caname": "SplunkServerDefaultCert"
+    }
+
+    parsed_url = urlparse(setup["splunk_hec_url"])
+    hec_ip = parsed_url.hostname
+    hec_port = parsed_url.port
+    splunk_hec_url = "https://SplunkServerDefaultCert:{0}".format(hec_port)
+
+    if "SplunkServerDefaultCert" not in open('/etc/hosts').read():
+        file = open("/etc/hosts", "a")
+        file.write("{0}\tSplunkServerDefaultCert".format(hec_ip))
+        file.close()
+
+    request_start_logging(file_path,
+                          splunk_hec_url,
+                          setup["splunk_hec_token"],
+                          options=options)
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(10)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(id=u_id,
+                                      start_time="-2m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == 1
