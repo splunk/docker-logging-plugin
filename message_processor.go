@@ -47,28 +47,19 @@ func appendToPartialBuffer(p *pmsgBuffer, b *logdriver.LogEntry) {
 	}
 }
 
-func isPartialBufferHoldDurationExpired(t <-chan time.Time) bool {
-	select {
-	case <-t:
-		return true
-	default:
-		return false
-	}
-}
-
 /*
 This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
 func consumeLog(lf *logPair) {
 	// Initialize partial msg buffer
-	pBuf := pmsgBuffer{
+	pBuf := &pmsgBuffer{
 		bufferHoldDuration: partialMsgBufferHoldDuration,
 		bufferMaximum:      partialMsgBufferMaximum,
 		bufferReset:        false,
 	}
 	//Create timer for pbuffer hold duration
-	timer := time.NewTicker(pBuf.bufferHoldDuration)
+	partialBufferTimer := time.Now()
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -87,28 +78,30 @@ func consumeLog(lf *logPair) {
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-		// Apprend to partial buffer
-		appendToPartialBuffer(&pBuf, &buf)
+		// Append to partial buffer
+		appendToPartialBuffer(pBuf, &buf)
 		// Check buffer hold duration
-		if isPartialBufferHoldDurationExpired(timer.C) && buf.Partial {
+		diff := time.Now().Sub(partialBufferTimer)
+		// Force partial bit if partial buffer hold timer expires
+		if buf.Partial && diff > partialMsgBufferHoldDuration {
 			logrus.Debug("Force partial bit to false due to buffer hold duration expiry")
 			buf.Partial = false
 		}
 
-		if sendMessage(lf.splunkl, &buf, &pBuf, lf.info.ContainerID) == false {
+		if !sendMessage(lf.splunkl, &buf, pBuf, lf.info.ContainerID) {
 			continue
 		}
 
-		if sendMessage(lf.jsonl, &buf, &pBuf, lf.info.ContainerID) == false {
+		if !sendMessage(lf.jsonl, &buf, pBuf, lf.info.ContainerID) {
 			continue
 		}
 		//partial buffer reset
 		if pBuf.bufferReset {
 			pBuf.pmsg.Reset()
+			partialBufferTimer = time.Now()
 		}
 		buf.Reset()
 	}
-	timer.Stop()
 }
 
 // send the log entry message to logger
