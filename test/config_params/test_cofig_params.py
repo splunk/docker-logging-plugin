@@ -3,6 +3,7 @@ import time
 import uuid
 import os
 import logging
+import json
 from urllib.parse import urlparse
 from ..common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
@@ -190,3 +191,66 @@ def test_splunk_ca(setup):
                              " with u_id=%s",
                              len(events), u_id)
     assert len(events) == 1
+
+
+@pytest.mark.parametrize("test_input,expected", [
+    ("json", 1),
+    ("inline", 1),
+    ("raw", 1)
+])
+def test_splunk_format(setup, test_input, expected):
+    '''
+    Test that different splunk format: json, raw, inline can be handled
+    correctly.
+
+    json: tries to parse the given message in to a json object and send both
+          source and log message to splunk
+    inline: treats the given message as a string and wrap it in a json object
+            with source and send the json string to splunk
+    raw: sends the raw message to splunk
+    '''
+    logging.getLogger().info("testing test_splunk_format input={0} \
+                expected={1} event(s)".format(test_input, expected))
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    test_string = '{"test": true, "id": "' + u_id + '"}'
+    start_log_producer_from_input(file_path, [(test_string, False)], u_id)
+
+    options = {}
+    if test_input:
+        options = {"splunk-format": test_input}
+
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"],
+                          options=options)
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(10)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(id=u_id,
+                                      start_time="-2m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == expected
+
+    event = events[0]["_raw"]
+    if test_input == "json" or test_input == "inline":
+        try:
+            parsed_event = json.loads(event)
+        except Exception:
+            pytest.fail("{0} can't be parsed to json"
+                        .format(event))
+            if test_input == "json":
+                assert parsed_event["line"] == json.loads(test_string)
+            elif test_input == "inline":
+                assert parsed_event["line"] == test_string
+    elif test_input == "raw":
+        assert event == test_string
