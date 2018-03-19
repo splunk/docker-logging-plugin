@@ -334,6 +334,10 @@ def test_splunk_gzip(setup, test_input, has_exception):
 
 
 def test_splunk_tag(setup):
+    '''
+    Test the users can add customized tag to the events and splunk
+    preserves the tags added.
+    '''
     logging.getLogger().info("testing test_splunk_tag")
     u_id = str(uuid.uuid4())
 
