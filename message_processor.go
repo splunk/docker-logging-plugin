@@ -77,26 +77,29 @@ func consumeLog(lf *logPair) {
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-		// Append to temp buffer
-		appendToTempBuffer(tmpBuf, &buf)
-		// Check for temp buffer timer expiration
-		diff := time.Now().Sub(tempBufferTimer)
-		if diff > tempMsgBufferHoldDuration {
-			tmpBuf.bufferHoldDurationExpired = true
-		}
 
-		if !sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID) {
-			continue
-		}
+		if shouldSendMessage(buf.Line) {
+			// Append to temp buffer
+			appendToTempBuffer(tmpBuf, &buf)
+			// Check for temp buffer timer expiration
+			diff := time.Now().Sub(tempBufferTimer)
+			if diff > tempMsgBufferHoldDuration {
+				tmpBuf.bufferHoldDurationExpired = true
+			}
 
-		if !sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID) {
-			continue
-		}
-		//temp buffer and values reset
-		if tmpBuf.bufferReset {
-			tmpBuf.tBuf.Reset()
-			tempBufferTimer = time.Now()
-			tmpBuf.bufferHoldDurationExpired = false
+			if !sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID) {
+				continue
+			}
+
+			if !sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID) {
+				continue
+			}
+			//temp buffer and values reset
+			if tmpBuf.bufferReset {
+				tmpBuf.tBuf.Reset()
+				tempBufferTimer = time.Now()
+				tmpBuf.bufferHoldDurationExpired = false
+			}
 		}
 		buf.Reset()
 	}
@@ -105,9 +108,6 @@ func consumeLog(lf *logPair) {
 // send the log entry message to logger
 func sendMessage(l logger.Logger, buf *logdriver.LogEntry, tBuffer *tmpBuffer, containerid string) bool {
 	var msg logger.Message
-	if !shouldSendMessage(buf.Line) {
-		return false
-	}
 	if !buf.Partial || tBuffer.bufferHoldDurationExpired || tempMsgBufferMaximum <= tBuffer.tBuf.Len() {
 		// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
 		logrus.WithField("id", containerid).WithField("Buffer partial flag should be false:",
