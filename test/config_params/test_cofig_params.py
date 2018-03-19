@@ -284,3 +284,50 @@ def test_splunk_verify_connection(setup, test_input, has_exception):
         assert not has_exception
     except Exception as ex:
         assert has_exception
+
+
+@pytest.mark.parametrize("test_input, has_exception", [
+    ("-1", True),
+    ("0", False),
+    ("5", False),
+    ("9", False),
+    ("10", True)
+])
+def test_splunk_gzip(setup, test_input, has_exception):
+    '''
+    Test that the http events can be send to splunk with gzip enabled.
+
+    Acceptable gzip levels are from 0 - 9. Gzip level out of the range
+    will thrown an exception.
+    '''
+    logging.getLogger().info("testing test_splunk_gzip")
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test gzip", False)], u_id)
+
+    options = {"splunk-gzip": "true", "splunk-gzip-level": test_input}
+
+    try:
+        request_start_logging(file_path,
+                              setup["splunk_hec_url"],
+                              setup["splunk_hec_token"],
+                              options=options)
+    except Exception as ex:
+        assert has_exception
+
+    if not has_exception:
+        # wait for 10 seconds to allow messages to be sent
+        time.sleep(10)
+        request_stop_logging(file_path)
+
+        # check that events get to splunk
+        events = check_events_from_splunk(id=u_id,
+                                          start_time="-2m@m",
+                                          url=setup["splunkd_url"],
+                                          user=setup["splunk_user"],
+                                          password=setup["splunk_password"])
+        logging.getLogger().info("Splunk received %s events in the last " +
+                                 "minute with u_id=%s",
+                                 len(events), u_id)
+        assert len(events) == 1
