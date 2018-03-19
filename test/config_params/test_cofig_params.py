@@ -254,3 +254,33 @@ def test_splunk_format(setup, test_input, expected):
                 assert parsed_event["line"] == test_string
     elif test_input == "raw":
         assert event == test_string
+
+
+@pytest.mark.parametrize("test_input, has_exception", [
+    ("false", False),
+    ("true", True),
+])
+def test_splunk_verify_connection(setup, test_input, has_exception):
+    '''
+    Test that splunk-verify-connection option works as expected.
+
+    In this test, given a wrong splunk hec endpoint/token:
+    - if splunk-verify-connection == false, the plugin will
+      NOT throw any exception at the start up
+    - if splunk-verify-connection == true, the plugin will
+      error out at the start up
+    '''
+    logging.getLogger().info("testing splunk_verify_connection")
+    file_path = setup["fifo_path"]
+    u_id = str(uuid.uuid4())
+    start_log_producer_from_input(file_path, [("test verify", False)], u_id)
+    options = {"splunk-verify-connection": test_input}
+    try:
+        request_start_logging(file_path,
+                              "https://localhost:8088",
+                              "00000-00000-0000-00000",  # this should fail
+                              options=options)
+
+        assert not has_exception
+    except Exception as ex:
+        assert has_exception

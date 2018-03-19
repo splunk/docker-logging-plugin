@@ -3,6 +3,7 @@ import time
 from common import start_logging_plugin, \
     kill_logging_plugin
 
+
 def pytest_addoption(parser):
     parser.addoption("--splunkd-url",
                      help="splunkd url used to send test data to. \
