@@ -331,3 +331,34 @@ def test_splunk_gzip(setup, test_input, has_exception):
                                  "minute with u_id=%s",
                                  len(events), u_id)
         assert len(events) == 1
+
+
+def test_splunk_tag(setup):
+    logging.getLogger().info("testing test_splunk_tag")
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test tag", False)], u_id)
+
+    options = {"tag": "test-tag"}
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"],
+                          options=options)
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(10)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(id=u_id,
+                                      start_time="-2m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == 1
+    parsed_event = json.loads(events[0]["_raw"])
+    assert parsed_event["tag"] == options["tag"]
