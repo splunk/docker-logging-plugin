@@ -33,6 +33,7 @@ func (mg messageProcessor) process(lf *logPair) {
 
 type tmpBuffer struct {
 	tBuf                      bytes.Buffer
+	bufferTimer               time.Time
 	bufferReset               bool
 	bufferHoldDurationExpired bool
 }
@@ -47,6 +48,12 @@ func appendToTempBuffer(p *tmpBuffer, b *logdriver.LogEntry) {
 	}
 }
 
+func resetTempBufferValues(p *tmpBuffer) {
+	p.tBuf.Reset()
+	p.bufferTimer = time.Now()
+	p.bufferHoldDurationExpired = false
+}
+
 /*
 This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
@@ -54,11 +61,12 @@ and send the buffer to splunk logger and json logger
 func consumeLog(lf *logPair) {
 	// Initialize temp buffer
 	tmpBuf := &tmpBuffer{
+		bufferTimer:               time.Now(),
 		bufferReset:               false,
 		bufferHoldDurationExpired: false,
 	}
 	//Create timer for pbuffer hold duration
-	tempBufferTimer := time.Now()
+	tmpBuf.bufferTimer = time.Now()
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -82,23 +90,16 @@ func consumeLog(lf *logPair) {
 			// Append to temp buffer
 			appendToTempBuffer(tmpBuf, &buf)
 			// Check for temp buffer timer expiration
-			diff := time.Now().Sub(tempBufferTimer)
+			diff := time.Now().Sub(tmpBuf.bufferTimer)
 			if diff > tempMsgBufferHoldDuration {
 				tmpBuf.bufferHoldDurationExpired = true
 			}
 
-			if !sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID) {
-				continue
-			}
-
-			if !sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID) {
-				continue
-			}
+			sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
+			sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
 			//temp buffer and values reset
 			if tmpBuf.bufferReset {
-				tmpBuf.tBuf.Reset()
-				tempBufferTimer = time.Now()
-				tmpBuf.bufferHoldDurationExpired = false
+				resetTempBufferValues(tmpBuf)
 			}
 		}
 		buf.Reset()
@@ -123,6 +124,8 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, tBuffer *tmpBuffer, c
 		if err != nil {
 			logrus.WithField("id", containerid).WithError(err).WithField("message",
 				msg).Error("Error writing log message")
+			//Reset temp buffer
+			tBuffer.bufferReset = true
 			return false
 		}
 		tBuffer.bufferReset = true
