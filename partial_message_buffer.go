@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	tempMsgBufferHoldDuration = getAdvancedOptionDuration(envVarTempMsgBufferHoldDuration, defaultTempMsgBufferHoldDuration)
-	tempMsgBufferMaximum      = getAdvancedOptionInt(envVarTempMsgBufferMaximum, defaultTempMsgBufferMaximum)
+	partialMsgBufferHoldDuration = getAdvancedOptionDuration(envVarPartialMsgBufferHoldDuration, defaultPartialMsgBufferHoldDuration)
+	partialMsgBufferMaximum      = getAdvancedOptionInt(envVarPartialMsgBufferMaximum, defaultPartialMsgBufferMaximum)
 )
 
 type partialMsgBuffer struct {
@@ -42,11 +42,11 @@ func (b *partialMsgBuffer) reset() {
 
 func (b *partialMsgBuffer) hasHoldDurationExpired(t time.Time) bool {
 	diff := t.Sub(b.bufferTimer)
-	return diff > tempMsgBufferHoldDuration
+	return diff > partialMsgBufferHoldDuration
 }
 
 func (b *partialMsgBuffer) hasLengthExceeded() bool {
-	return tempMsgBufferMaximum < b.tBuf.Len()
+	return partialMsgBufferMaximum < b.tBuf.Len()
 }
 
 func (b *partialMsgBuffer) shouldFlush(t time.Time) bool {
