@@ -65,8 +65,6 @@ func consumeLog(lf *logPair) {
 		bufferReset:               false,
 		bufferHoldDurationExpired: false,
 	}
-	//Create timer for pbuffer hold duration
-	tmpBuf.bufferTimer = time.Now()
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -107,7 +105,7 @@ func consumeLog(lf *logPair) {
 }
 
 // send the log entry message to logger
-func sendMessage(l logger.Logger, buf *logdriver.LogEntry, tBuffer *tmpBuffer, containerid string) bool {
+func sendMessage(l logger.Logger, buf *logdriver.LogEntry, tBuffer *tmpBuffer, containerid string) {
 	var msg logger.Message
 	if !buf.Partial || tBuffer.bufferHoldDurationExpired || tempMsgBufferMaximum <= tBuffer.tBuf.Len() {
 		// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
@@ -126,11 +124,9 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, tBuffer *tmpBuffer, c
 				msg).Error("Error writing log message")
 			//Reset temp buffer
 			tBuffer.bufferReset = true
-			return false
 		}
 		tBuffer.bufferReset = true
 	}
-	return true
 }
 
 // shouldSendMessage() returns a boolean indicating
