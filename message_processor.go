@@ -13,11 +13,6 @@ import (
 	protoio "github.com/gogo/protobuf/io"
 )
 
-var (
-	tempMsgBufferHoldDuration = getAdvancedOptionDuration(envVarTempMsgBufferHoldDuration, defaultTempMsgBufferHoldDuration)
-	tempMsgBufferMaximum      = getAdvancedOptionInt(envVarTempMsgBufferMaximum, defaultTempMsgBufferMaximum)
-)
-
 type messageProcessor struct {
 	prevMesssage logdriver.LogEntry
 }
@@ -31,54 +26,14 @@ func (mg messageProcessor) process(lf *logPair) {
 	consumeLog(lf)
 }
 
-type tempBuffer struct {
-	tBuf                      bytes.Buffer
-	bufferTimer               time.Time
-	bufferReset               bool
-}
-
-func (b *tempBuffer) append(l *logdriver.LogEntry) bool {
-	// Add msg to temp buffer and disable buffer reset flag
-	ps, err := b.tBuf.Write(l.Line)
-	b.bufferReset = false
-	if err != nil {
-		logrus.WithError(err).WithField("Appending to Temp Buffer with size:", ps).Error(
-			"Error appending to temp buffer")
-		b.reset()
-		return false
-	}
-	return true
-}
-
-func (b *tempBuffer) reset() {
-	if b.bufferReset {
-		logrus.Debug("Resetting temp buffer")
-		b.tBuf.Reset()
-		b.bufferTimer = time.Now()
-	}
-}
-
-func (b *tempBuffer) hasHoldDurationExpired (t time.Time) bool {
-	diff := t.Sub(b.bufferTimer)
-	return diff > tempMsgBufferHoldDuration
-}
-
-func (b *tempBuffer) hasLengthExceeded() bool {
-	return tempMsgBufferMaximum < b.tBuf.Len()
-}
-
-func (b *tempBuffer) shouldFlush(t time.Time) bool {
-	return b.hasLengthExceeded() || b.hasHoldDurationExpired(t)
-}
-
 /*
 This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
 func consumeLog(lf *logPair) {
 	// Initialize temp buffer
-	tmpBuf := &tempBuffer{
-		bufferTimer:               time.Now(),
+	tmpBuf := &partialMsgBuffer{
+		bufferTimer: time.Now(),
 	}
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
@@ -101,7 +56,7 @@ func consumeLog(lf *logPair) {
 
 		if shouldSendMessage(buf.Line) {
 			// Append to temp buffer
-			if tmpBuf.append(&buf) {
+			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and json logger
 				sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
 				sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
@@ -114,7 +69,7 @@ func consumeLog(lf *logPair) {
 }
 
 // send the log entry message to logger
-func sendMessage(l logger.Logger, buf *logdriver.LogEntry, t *tempBuffer, containerid string) {
+func sendMessage(l logger.Logger, buf *logdriver.LogEntry, t *partialMsgBuffer, containerid string) {
 	var msg logger.Message
 	// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
 	// Check for temp buffer timer expiration
