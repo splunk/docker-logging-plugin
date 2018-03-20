@@ -122,8 +122,6 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, tBuffer *tmpBuffer, c
 		if err != nil {
 			logrus.WithField("id", containerid).WithError(err).WithField("message",
 				msg).Error("Error writing log message")
-			//Reset temp buffer
-			tBuffer.bufferReset = true
 		}
 		tBuffer.bufferReset = true
 	}
