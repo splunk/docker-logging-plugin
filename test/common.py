@@ -85,8 +85,14 @@ def __write_to_fifo_interval(fifo_path, u_id, interval=5, duration=120):
     logger.info('start_log_producer_interval')
     f_writer = __open_fifo(fifo_path)
 
+    def _frange(start, stop, step):
+        i = start
+        while i < stop:
+            yield i
+            i += step
+
     i = 0
-    for i in range(0, duration):
+    for i in _frange(0, duration, interval):
         cur_time = round(time.time()) * 1000
         message = json.dumps({"time": cur_time})
         logger.info("Writing data in protobuf with source=%s", u_id)
@@ -95,7 +101,6 @@ def __write_to_fifo_interval(fifo_path, u_id, interval=5, duration=120):
                                   partial=False,
                                   source=u_id)
         time.sleep(interval)
-        i = i + interval
 
     __close_fifo(f_writer)
 
@@ -172,7 +177,7 @@ def __write_proto_buf_message(fifo_writer=None,
     struct.pack_into(">i", size_buffer, 0, size)
     fifo_writer.write(size_buffer)
     fifo_writer.write(buf)
-    fifo_writer.flush()
+    # fifo_writer.flush()
 
 
 def __close_fifo(fifo_writer):
@@ -335,8 +340,8 @@ def _get_events(job_id, url="", user="", password=""):
     @param: job_id
     returns events
     '''
-    event_url = '{0}/services/search/jobs/{1}/events?output_mode=json'.format(
-        url, str(job_id))
+    event_url = '{0}/services/search/jobs/{1}/events?output_mode=json&count=0'\
+        .format(url, str(job_id))
     logger.info('requesting: %s', event_url)
 
     event_job = _requests_retry_session().get(
