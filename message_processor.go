@@ -44,6 +44,7 @@ func (b *tmpBuffer) appendToTempBuffer(l *logdriver.LogEntry) bool {
 	if err != nil {
 		logrus.WithError(err).WithField("Appending to Temp Buffer with size:", ps).Error(
 			"Error appending to temp buffer")
+		b.resetTempBuffer()
 		return false
 	}
 	return true
