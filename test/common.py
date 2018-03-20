@@ -67,6 +67,39 @@ def start_log_producer_from_file(file_path, u_id, input_file):
     pool.apply_async(__write_file_to_fifo, [file_path, u_id, input_file])
 
 
+def start_log_producer_interval(file_path, u_id, interval=5, duration=120):
+    '''
+    Spawn a thread to write logs to fifo by streaming the
+    content from given file
+    @param: file_path
+    @param: u_id
+    @param: interval
+    @param: duration
+    '''
+    pool = Pool(processes=1)              # Start a worker processes.
+    pool.apply_async(__write_to_fifo_interval,
+                     [file_path, u_id, interval, duration])
+
+
+def __write_to_fifo_interval(fifo_path, u_id, interval=5, duration=120):
+    logger.info('start_log_producer_interval')
+    f_writer = __open_fifo(fifo_path)
+
+    i = 0
+    for i in range(0, duration):
+        cur_time = round(time.time()) * 1000
+        message = json.dumps({"time": cur_time})
+        logger.info("Writing data in protobuf with source=%s", u_id)
+        __write_proto_buf_message(f_writer,
+                                  message=message,
+                                  partial=False,
+                                  source=u_id)
+        time.sleep(interval)
+        i = i + interval
+
+    __close_fifo(f_writer)
+
+
 def __write_to_fifo(fifo_path, test_input, u_id, timeout=0):
     f_writer = __open_fifo(fifo_path)
 
