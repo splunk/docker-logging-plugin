@@ -13,7 +13,6 @@ import (
 	protoio "github.com/gogo/protobuf/io"
 )
 
-// TODO: implement partial logs and multiline logs logic
 type messageProcessor struct {
 	prevMesssage logdriver.LogEntry
 }
@@ -32,6 +31,10 @@ This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
 func consumeLog(lf *logPair) {
+	// Initialize temp buffer
+	tmpBuf := &partialMsgBuffer{
+		bufferTimer: time.Now(),
+	}
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -50,36 +53,40 @@ func consumeLog(lf *logPair) {
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
-		if sendMessage(lf.splunkl, &buf, lf.info.ContainerID) == false {
-			continue
-		}
-		if sendMessage(lf.jsonl, &buf, lf.info.ContainerID) == false {
-			continue
-		}
 
+		if shouldSendMessage(buf.Line) {
+			// Append to temp buffer
+			if err := tmpBuf.append(&buf); err == nil {
+				// Send message to splunk and json logger
+				sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
+				sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				//temp buffer and values reset
+				tmpBuf.reset()
+			}
+		}
 		buf.Reset()
 	}
-
 }
 
 // send the log entry message to logger
-func sendMessage(l logger.Logger, buf *logdriver.LogEntry, containerid string) bool {
+func sendMessage(l logger.Logger, buf *logdriver.LogEntry, t *partialMsgBuffer, containerid string) {
 	var msg logger.Message
-	if !shouldSendMessage(buf.Line) {
-		return false
-	}
+	// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
+	// Check for temp buffer timer expiration
+	if !buf.Partial || t.shouldFlush(time.Now()) {
+		logrus.WithField("id", containerid).WithField("Buffer partial flag should be false:",
+			buf.Partial).WithField("Temp buffer Length:", t.tBuf.Len()).Debug("Buffer details")
+		msg.Line = t.tBuf.Bytes()
+		msg.Source = buf.Source
+		msg.Partial = buf.Partial
+		msg.Timestamp = time.Unix(0, buf.TimeNano)
 
-	msg.Line = buf.Line
-	msg.Source = buf.Source
-	msg.Partial = buf.Partial
-	msg.Timestamp = time.Unix(0, buf.TimeNano)
-	err := l.Log(&msg)
-
-	if err != nil {
-		logrus.WithField("id", containerid).WithError(err).WithField("message", msg).Error("error writing log message")
-		return false
+		if err := l.Log(&msg); err != nil {
+			logrus.WithField("id", containerid).WithError(err).WithField("message",
+				msg).Error("Error writing log message")
+		}
+		t.bufferReset = true
 	}
-	return true
 }
 
 // shouldSendMessage() returns a boolean indicating
