@@ -59,9 +59,10 @@ def test_splunk_index(setup, test_input, expected):
 ])
 def test_splunk_source(setup, test_input, expected):
     '''
-    Test that docker logs can be indexed with the specified
-    source successfully. If no source is specified, the default
-    "http:docker" is used
+    Test that docker logs can be indexed with the specified source
+    successfully. If no source is specified, source will be whatever
+    the application sets to. Here in this test, the default is
+    "http:docker"
     '''
 
     logging.getLogger().info("testing test_splunk_source input={0} \
