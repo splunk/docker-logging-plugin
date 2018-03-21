@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestEmptyString(t *testing.T) {
+func TestShouldSendMessage(t *testing.T) {
 	test := []byte{' '}
 	res := shouldSendMessage(test)
 

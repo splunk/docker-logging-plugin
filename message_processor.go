@@ -14,23 +14,18 @@ import (
 )
 
 type messageProcessor struct {
-	prevMesssage logdriver.LogEntry
-}
-
-func newMessageProcessor() *messageProcessor {
-	return &messageProcessor{}
 }
 
 func (mg messageProcessor) process(lf *logPair) {
 	logrus.Debug("Start to consume log")
-	consumeLog(lf)
+	mg.consumeLog(lf)
 }
 
 /*
 This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
-func consumeLog(lf *logPair) {
+func (mg messageProcessor) consumeLog(lf *logPair) {
 	// Initialize temp buffer
 	tmpBuf := &partialMsgBuffer{
 		bufferTimer: time.Now(),
@@ -54,12 +49,12 @@ func consumeLog(lf *logPair) {
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
 
-		if shouldSendMessage(buf.Line) {
+		if mg.shouldSendMessage(buf.Line) {
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and json logger
-				sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
-				sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
+				mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
 				//temp buffer and values reset
 				tmpBuf.reset()
 			}
@@ -69,7 +64,7 @@ func consumeLog(lf *logPair) {
 }
 
 // send the log entry message to logger
-func sendMessage(l logger.Logger, buf *logdriver.LogEntry, t *partialMsgBuffer, containerid string) {
+func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry, t *partialMsgBuffer, containerid string) {
 	var msg logger.Message
 	// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
 	// Check for temp buffer timer expiration
@@ -91,7 +86,7 @@ func sendMessage(l logger.Logger, buf *logdriver.LogEntry, t *partialMsgBuffer, 
 
 // shouldSendMessage() returns a boolean indicating
 // if the message should be sent to Splunk
-func shouldSendMessage(message []byte) bool {
+func (mg messageProcessor) shouldSendMessage(message []byte) bool {
 	trimedLine := bytes.Fields(message)
 	if len(trimedLine) == 0 {
 		logrus.Info("Ignoring empty string")
