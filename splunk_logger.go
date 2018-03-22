@@ -343,10 +343,6 @@ func New(info logger.Info) (logger.Logger, error) {
 	return loggerWrapper, nil
 }
 
-func composeHealthCheckURL(splunkURL *url.URL) string {
-	return splunkURL.Scheme + "://" + splunkURL.Host + "/services/collector/health"
-}
-
 /*
 ValidateLogOpt validates the arguments passed in to the plugin
 */
@@ -408,6 +404,13 @@ func parseURL(info logger.Info) (*url.URL, error) {
 	}
 
 	return splunkURL, nil
+}
+
+/*
+ parseURL() makes sure that the URL is the format of: scheme://dns_name_or_ip:port
+*/
+func composeHealthCheckURL(splunkURL *url.URL) string {
+	return splunkURL.Scheme + "://" + splunkURL.Host + "/services/collector/health"
 }
 
 func getAdvancedOptionDuration(envName string, defaultValue time.Duration) time.Duration {
