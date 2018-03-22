@@ -107,17 +107,27 @@ func TestHasHoldDurationExpired(t *testing.T) {
 	time.Sleep(3 * time.Millisecond)
 	endTime := time.Now()
 	expired := buf.hasHoldDurationExpired(endTime)
+	shouldFlush := buf.shouldFlush(endTime)
 
 	if expired {
-		t.Fatal("bufferTimer has exipred yet")
+		t.Fatal("bufferTimer should not have exipred.")
+	}
+
+	if shouldFlush {
+		t.Fatal("tbuf should not be flushed")
 	}
 
 	time.Sleep(2 * time.Millisecond)
 	endTime = time.Now()
 	expired = buf.hasHoldDurationExpired(endTime)
+	shouldFlush = buf.shouldFlush(endTime)
 
 	if !expired {
 		t.Fatal("bufferTimer should have exipred")
+	}
+
+	if !shouldFlush {
+		t.Fatal("tbuf should be flushed when buffer expired")
 	}
 }
 
@@ -140,9 +150,14 @@ func TestHasLengthExceeded(t *testing.T) {
 	}
 	buf.append(entry)
 	lengthExceeded := buf.hasLengthExceeded()
+	shouldFlush := buf.shouldFlush(time.Now())
 
 	if lengthExceeded {
 		t.Fatalf("buffer size should not be exceed with lenth %v", buf.tBuf.Len())
+	}
+
+	if shouldFlush {
+		t.Fatalf("tbuf should not be flushed with bufferSize %v and current length %v", partialMsgBufferMaximum, buf.tBuf.Len())
 	}
 
 	for i := 0; i < 9; i++ {
@@ -157,9 +172,14 @@ func TestHasLengthExceeded(t *testing.T) {
 	}
 	buf.append(entry)
 	lengthExceeded = buf.hasLengthExceeded()
+	shouldFlush = buf.shouldFlush(time.Now())
 
 	if lengthExceeded {
 		t.Fatalf("buffer size should not be exceed with lenth %v", buf.tBuf.Len())
+	}
+
+	if shouldFlush {
+		t.Fatalf("tbuf should not be flushed with bufferSize %v and current length %v", partialMsgBufferMaximum, buf.tBuf.Len())
 	}
 
 	a = append(a, 'x')
@@ -172,9 +192,14 @@ func TestHasLengthExceeded(t *testing.T) {
 	}
 	buf.append(entry)
 	lengthExceeded = buf.hasLengthExceeded()
+	shouldFlush = buf.shouldFlush(time.Now())
 
 	if !lengthExceeded {
 		t.Fatalf("buffer size should be exceed with lenth %v", buf.tBuf.Len())
+	}
+
+	if !shouldFlush {
+		t.Fatalf("tbuf should be flushed with bufferSize %v and current length %v", partialMsgBufferMaximum, buf.tBuf.Len())
 	}
 
 }
