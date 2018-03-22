@@ -246,6 +246,7 @@ func New(info logger.Info) (logger.Logger, error) {
 			client:                client,
 			transport:             transport,
 			url:                   splunkURL.String(),
+			healthCheckURL:        composeHealthCheckURL(splunkURL),
 			auth:                  "Splunk " + splunkToken,
 			gzipCompression:       gzipCompression,
 			gzipCompressionLevel:  gzipCompressionLevel,
@@ -340,6 +341,10 @@ func New(info logger.Info) (logger.Logger, error) {
 	go loggerWrapper.worker()
 
 	return loggerWrapper, nil
+}
+
+func composeHealthCheckURL(splunkURL *url.URL) string {
+	return splunkURL.Scheme + "://" + splunkURL.Host + "/services/collector/health"
 }
 
 /*
