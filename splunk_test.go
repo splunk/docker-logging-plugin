@@ -71,8 +71,7 @@ func TestNewMissedUrl(t *testing.T) {
 func TestUrlFormat(t *testing.T) {
 	info := logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "127.0.0.1",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "127.0.0.1",
 		},
 	}
 	_, err := parseURL(info)
@@ -83,8 +82,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "www.google.com",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "www.google.com",
 		},
 	}
 	_, err = parseURL(info)
@@ -94,8 +92,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "ftp://127.0.0.1",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "ftp://127.0.0.1",
 		},
 	}
 	_, err = parseURL(info)
@@ -105,8 +102,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "http://127.0.0.1:8088/test",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "http://127.0.0.1:8088/test",
 		},
 	}
 	_, err = parseURL(info)
@@ -116,8 +112,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "testURL",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "testURL",
 		},
 	}
 	_, err = parseURL(info)
@@ -127,8 +122,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "http://www.host.com/?q=hello",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "http://www.host.com/?q=hello",
 		},
 	}
 	_, err = parseURL(info)
@@ -139,8 +133,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "http://www.host.com#hello",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "http://www.host.com#hello",
 		},
 	}
 	_, err = parseURL(info)
@@ -151,8 +144,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "127.0.1:8000",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "127.0.1:8000",
 		},
 	}
 	_, err = parseURL(info)
@@ -162,8 +154,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "https://127.0.1:8000",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "https://127.0.1:8000",
 		},
 	}
 
@@ -175,8 +166,7 @@ func TestUrlFormat(t *testing.T) {
 
 	info = logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   "https://127.0.1:8000/",
-			splunkTokenKey: "4642492F-D8BD-47F1-A005-0C08AE4657DF",
+			splunkURLKey: "https://127.0.1:8000/",
 		},
 	}
 
