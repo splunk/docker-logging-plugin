@@ -15,14 +15,14 @@ func (message *splunkMessage) EventAsString() (string, error) {
 	if val, ok := message.Event.(string); ok {
 		return val, nil
 	}
-	return "", fmt.Errorf("Cannot cast Event %v to string", message.Event)
+	return "", fmt.Errorf("cannot cast Event %v to string", message.Event)
 }
 
 func (message *splunkMessage) EventAsMap() (map[string]interface{}, error) {
 	if val, ok := message.Event.(map[string]interface{}); ok {
 		return val, nil
 	}
-	return nil, fmt.Errorf("Cannot cast Event %v to map", message.Event)
+	return nil, fmt.Errorf("cannot cast Event %v to map", message.Event)
 }
 
 type HTTPEventCollectorMock struct {

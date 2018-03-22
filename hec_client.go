@@ -76,7 +76,7 @@ func (hec *hecClient) tryPostMessages(messages []*splunkMessage) error {
 	var gzipWriter *gzip.Writer
 	var err error
 	// If gzip compression is enabled - create gzip writer with specified compression
-	// levehec. If gzip compression is disabled, use standard buffer as a writer
+	// level. If gzip compression is disabled, use standard buffer as a writer
 	if hec.gzipCompression {
 		gzipWriter, err = gzip.NewWriterLevel(&buffer, hec.gzipCompressionLevel)
 		if err != nil {

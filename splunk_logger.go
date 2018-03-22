@@ -91,12 +91,6 @@ type splunkLoggerInline struct {
 	nullEvent *splunkMessageEvent
 }
 
-type splunkLoggerNova struct {
-	*splunkLogger
-
-	prefix []byte
-}
-
 type splunkLoggerJSON struct {
 	*splunkLoggerInline
 }
@@ -128,7 +122,6 @@ const (
 	splunkFormatRaw    = "raw"
 	splunkFormatJSON   = "json"
 	splunkFormatInline = "inline"
-	splunkFormatNova   = "nova"
 )
 
 /*
@@ -196,7 +189,7 @@ func New(info logger.Info) (logger.Logger, error) {
 		}
 		gzipCompressionLevel = int(gzipCompressionLevel64)
 		if gzipCompressionLevel < gzip.DefaultCompression || gzipCompressionLevel > gzip.BestCompression {
-			err := fmt.Errorf("Not supported level '%s' for %s (supported values between %d and %d).",
+			err := fmt.Errorf("not supported level '%s' for %s (supported values between %d and %d)",
 				gzipCompressionLevelStr, splunkGzipCompressionLevelKey, gzip.DefaultCompression, gzip.BestCompression)
 			return nil, err
 		}
@@ -279,9 +272,8 @@ func New(info logger.Info) (logger.Logger, error) {
 		case splunkFormatInline:
 		case splunkFormatJSON:
 		case splunkFormatRaw:
-		case splunkFormatNova:
 		default:
-			return nil, fmt.Errorf("Unknown format specified %s, supported formats are inline, json, raw, and nova", splunkFormat)
+			return nil, fmt.Errorf("unknown format specified %s, supported formats are inline, json and raw", splunkFormat)
 		}
 		splunkFormat = splunkFormatParsed
 	} else {
@@ -319,22 +311,8 @@ func New(info logger.Info) (logger.Logger, error) {
 		}
 
 		loggerWrapper = &splunkLoggerRaw{logger, prefix.Bytes()}
-	case splunkFormatNova:
-		var prefix bytes.Buffer
-		if tag != "" {
-			prefix.WriteString(tag)
-			prefix.WriteString(" ")
-		}
-		for key, value := range attrs {
-			prefix.WriteString(key)
-			prefix.WriteString("=")
-			prefix.WriteString(value)
-			prefix.WriteString(" ")
-		}
-
-		loggerWrapper = &splunkLoggerNova{logger, prefix.Bytes()}
 	default:
-		return nil, fmt.Errorf("Unexpected format %s", splunkFormat)
+		return nil, fmt.Errorf("unexpected format %s", splunkFormat)
 	}
 
 	go loggerWrapper.worker()
@@ -445,14 +423,6 @@ func (l *splunkLoggerInline) Log(msg *logger.Message) error {
 	return l.queueMessageAsync(message)
 }
 
-func (l *splunkLoggerNova) Log(msg *logger.Message) error {
-	message := l.createSplunkMessage(msg)
-	message.Entity = message.Host
-	message.Event = string(append(l.prefix, msg.Line...))
-	logger.PutMessage(msg)
-	return l.queueMessageAsync(message)
-}
-
 func (l *splunkLoggerJSON) Log(msg *logger.Message) error {
 	message := l.createSplunkMessage(msg)
 	event := *l.nullEvent
@@ -501,7 +471,7 @@ func (l *splunkLogger) worker() {
 	for {
 		select {
 		case message, open := <-l.stream:
-			// if the stream channel is closed, post the remaining messsages in the buffer
+			// if the stream channel is closed, post the remaining messages in the buffer
 			if !open {
 				l.hec.postMessages(messages, true)
 				l.lock.Lock()
