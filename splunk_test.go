@@ -218,8 +218,8 @@ func TestDefault(t *testing.T) {
 		t.Fatal("Unexpected logger driver name")
 	}
 
-	if !hec.connectionVerified {
-		t.Fatal("By default connection should be verified")
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
 	}
 
 	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerInline)
@@ -1180,7 +1180,7 @@ func TestSkipVerify(t *testing.T) {
 	}
 
 	if len(hec.messages) != defaultStreamChannelSize*4 {
-		t.Fatal("Not all messages delivered")
+		t.Fatal("Not all messages delivered %s ")
 	}
 
 	for i, message := range hec.messages {

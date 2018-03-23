@@ -258,8 +258,8 @@ func New(info logger.Info) (logger.Logger, error) {
 		stream:      make(chan *splunkMessage, streamChannelSize),
 	}
 
-	// By default we verify connection, but we allow use to skip that
-	verifyConnection := true
+	// By default we don't verify connection, but we allow user to enable that
+	verifyConnection := false
 	if verifyConnectionStr, ok := info.Config[splunkVerifyConnectionKey]; ok {
 		var err error
 		verifyConnection, err = strconv.ParseBool(verifyConnectionStr)
