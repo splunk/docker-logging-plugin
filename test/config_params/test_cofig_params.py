@@ -43,7 +43,7 @@ def test_splunk_index(setup, test_input, expected):
     # check that events get to splunk
     events = check_events_from_splunk(index=index,
                                       id=u_id,
-                                      start_time="-1m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
@@ -61,7 +61,7 @@ def test_splunk_source(setup, test_input, expected):
     '''
     Test that docker logs can be indexed with the specified
     source successfully. If no source is specified, the default
-    "http:docker" is used
+    source from docker is used
     '''
 
     logging.getLogger().info("testing test_splunk_source input={0} \
@@ -80,14 +80,14 @@ def test_splunk_source(setup, test_input, expected):
                           setup["splunk_hec_token"],
                           options=options)
 
-    source = test_input if test_input else "http:docker"
+    source = test_input if test_input else "*"
     # wait for 10 seconds to allow messages to be sent
     time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
     events = check_events_from_splunk(id="source={0} {1}".format(source, u_id),
-                                      start_time="-2m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
@@ -132,7 +132,7 @@ def test_splunk_source_type(setup, test_input, expected):
     # check that events get to splunk
     events = check_events_from_splunk(id="sourcetype={0} {1}"
                                          .format(sourcetype, u_id),
-                                      start_time="-2m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
@@ -183,7 +183,7 @@ def test_splunk_ca(setup):
 
     # check that events get to splunk
     events = check_events_from_splunk(id=u_id,
-                                      start_time="-2m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
@@ -232,7 +232,7 @@ def test_splunk_format(setup, test_input, expected):
 
     # check that events get to splunk
     events = check_events_from_splunk(id=u_id,
-                                      start_time="-2m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
@@ -323,7 +323,7 @@ def test_splunk_gzip(setup, test_input, has_exception):
 
         # check that events get to splunk
         events = check_events_from_splunk(id=u_id,
-                                          start_time="-2m@m",
+                                          start_time="-15m@m",
                                           url=setup["splunkd_url"],
                                           user=setup["splunk_user"],
                                           password=setup["splunk_password"])
@@ -356,7 +356,7 @@ def test_splunk_tag(setup):
 
     # check that events get to splunk
     events = check_events_from_splunk(id=u_id,
-                                      start_time="-2m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
