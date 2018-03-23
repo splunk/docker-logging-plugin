@@ -76,7 +76,6 @@ func TestUrlFormat(t *testing.T) {
 	}
 	_, err := parseURL(info)
 	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
-		fmt.Print(err.Error())
 		t.Fatal("Logger driver should fail when no schema is specified")
 	}
 
@@ -126,7 +125,6 @@ func TestUrlFormat(t *testing.T) {
 		},
 	}
 	_, err = parseURL(info)
-	fmt.Print(err.Error())
 	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
 		t.Fatal("Logger driver should fail when query parameter is specified")
 	}
@@ -137,7 +135,6 @@ func TestUrlFormat(t *testing.T) {
 		},
 	}
 	_, err = parseURL(info)
-	fmt.Print(err.Error())
 	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
 		t.Fatal("Logger driver should fail when fragment is specified")
 	}
