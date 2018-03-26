@@ -1,7 +1,7 @@
 # Splunk Log-driver plugin for Docker
 
-Splunk logging plugin allows docker containers to send their logs directly to a Splunk Enterprise service, a Splunk
-Cloud deployment, or to a SplunkNova account.
+Splunk Logging Plugin allows docker containers to send their logs directly to a Splunk Enterprise service or a Splunk
+Cloud deployment.
 
 ## Getting Started
 
@@ -52,20 +52,3 @@ $ docker run --log-driver=splunk \
              -it ubuntu bash
 
 ```
-
-#### SplunkNova Example
-
-Once you make an account on www.splunknova.com, you can grab your API credentials and use them here.
-
-```
-$ docker run --log-driver=splunk \
-             --log-opt splunk-url=https://api.splunknova.com:443 \
-             --log-opt splunk-token=<YOUR BASE64 ENCODED API KEYS> \
-             --log-opt splunk-url-path='/v1/events' \
-             --log-opt tag="{{.Name}}/{{.FullID}}" \
-             --log-opt splunk-format=nova \
-             --log-opt splunk-verify-connection=false \
-             --log-opt splunk-source='docker-logging' \
-             -it ubuntu bash
-```
-
