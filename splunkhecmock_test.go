@@ -97,7 +97,7 @@ func (hec *HTTPEventCollectorMock) ServeHTTP(writer http.ResponseWriter, request
 	}
 
 	switch request.Method {
-	case http.MethodOptions:
+	case http.MethodGet:
 		// Verify that options method is getting called only once
 		if hec.connectionVerified {
 			hec.test.Errorf("Connection should not be verified more than once. Got second request with %s method.", request.Method)

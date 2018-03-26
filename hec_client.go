@@ -33,8 +33,9 @@ type hecClient struct {
 	client    *http.Client
 	transport *http.Transport
 
-	url  string
-	auth string
+	url            string
+	healthCheckURL string
+	auth           string
 
 	// http compression
 	gzipCompression      bool
@@ -146,7 +147,7 @@ func (hec *hecClient) tryPostMessages(messages []*splunkMessage) error {
 }
 
 func (hec *hecClient) verifySplunkConnection(l *splunkLogger) error {
-	req, err := http.NewRequest(http.MethodOptions, hec.url, nil)
+	req, err := http.NewRequest(http.MethodGet, hec.healthCheckURL, nil)
 	if err != nil {
 		return err
 	}

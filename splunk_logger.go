@@ -255,6 +255,7 @@ func New(info logger.Info) (logger.Logger, error) {
 			client:                client,
 			transport:             transport,
 			url:                   splunkURL.String(),
+			healthCheckURL:        composeHealthCheckURL(splunkURL),
 			auth:                  "Splunk " + splunkToken,
 			gzipCompression:       gzipCompression,
 			gzipCompressionLevel:  gzipCompressionLevel,
@@ -266,8 +267,8 @@ func New(info logger.Info) (logger.Logger, error) {
 		stream:      make(chan *splunkMessage, streamChannelSize),
 	}
 
-	// By default we verify connection, but we allow use to skip that
-	verifyConnection := true
+	// By default we don't verify connection, but we allow user to enable that
+	verifyConnection := false
 	if verifyConnectionStr, ok := info.Config[splunkVerifyConnectionKey]; ok {
 		var err error
 		verifyConnection, err = strconv.ParseBool(verifyConnectionStr)
@@ -397,6 +398,13 @@ func parseURL(info logger.Info) (*url.URL, error) {
 	}
 
 	return splunkURL, nil
+}
+
+/*
+ parseURL() makes sure that the URL is the format of: scheme://dns_name_or_ip:port
+*/
+func composeHealthCheckURL(splunkURL *url.URL) string {
+	return splunkURL.Scheme + "://" + splunkURL.Host + "/services/collector/health"
 }
 
 func getAdvancedOptionDuration(envName string, defaultValue time.Duration) time.Duration {

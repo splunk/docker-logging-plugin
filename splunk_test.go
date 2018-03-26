@@ -20,6 +20,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -82,6 +83,113 @@ func TestNewMissedUrl(t *testing.T) {
 	}
 }
 
+//splunk-url needs to be in the format of scheme://dns_name_or_ip<:port>
+func TestUrlFormat(t *testing.T) {
+	info := logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "127.0.0.1",
+		},
+	}
+	_, err := parseURL(info)
+	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
+		t.Fatal("Logger driver should fail when no schema is specified")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "www.google.com",
+		},
+	}
+	_, err = parseURL(info)
+	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
+		t.Fatal("Logger driver should fail when schema is not specified")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "ftp://127.0.0.1",
+		},
+	}
+	_, err = parseURL(info)
+	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
+		t.Fatal("Logger driver should fail when schema is not http or https")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "http://127.0.0.1:8088/test",
+		},
+	}
+	_, err = parseURL(info)
+	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
+		t.Fatal("Logger driver should fail when path is specified")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "testURL",
+		},
+	}
+	_, err = parseURL(info)
+	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
+		t.Fatal("Logger driver should fail when no schema is specified")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "http://www.host.com/?q=hello",
+		},
+	}
+	_, err = parseURL(info)
+	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
+		t.Fatal("Logger driver should fail when query parameter is specified")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "http://www.host.com#hello",
+		},
+	}
+	_, err = parseURL(info)
+	if err.Error() != "splunk: expected format scheme://dns_name_or_ip:port for splunk-url" {
+		t.Fatal("Logger driver should fail when fragment is specified")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "127.0.1:8000",
+		},
+	}
+	_, err = parseURL(info)
+	if !strings.HasPrefix(err.Error(), "splunk: failed to parse") {
+		t.Fatal("Logger driver should fail when path is specified")
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "https://127.0.1:8000",
+		},
+	}
+
+	url, err := parseURL(info)
+
+	if url.String() != "https://127.0.1:8000/services/collector/event/1.0" {
+		t.Fatalf("%s is not the right format of HEC endpoint.", url.String())
+	}
+
+	info = logger.Info{
+		Config: map[string]string{
+			splunkURLKey: "https://127.0.1:8000/",
+		},
+	}
+
+	url, err = parseURL(info)
+
+	if url.String() != "https://127.0.1:8000/services/collector/event/1.0" {
+		t.Fatalf("%s is not the right format of HEC endpoint.", url.String())
+	}
+}
+
 // Driver require user to specify splunk-token
 func TestNewMissedToken(t *testing.T) {
 	info := logger.Info{
@@ -126,8 +234,8 @@ func TestDefault(t *testing.T) {
 		t.Fatal("Unexpected logger driver name")
 	}
 
-	if !hec.connectionVerified {
-		t.Fatal("By default connection should be verified")
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
 	}
 
 	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerInline)
@@ -1088,7 +1196,7 @@ func TestSkipVerify(t *testing.T) {
 	}
 
 	if len(hec.messages) != defaultStreamChannelSize*4 {
-		t.Fatal("Not all messages delivered")
+		t.Fatal("Not all messages delivered %s ")
 	}
 
 	for i, message := range hec.messages {
