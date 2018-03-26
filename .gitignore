@@ -1,3 +1,5 @@
-plugin
+splunk-log-plugin
+splunk-log-plugin.tar.gz
 .idea/
+.DS_Store
 *.pyc

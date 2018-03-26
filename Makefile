@@ -1,30 +1,36 @@
 PLUGIN_NAME=splunk-log-plugin
 PLUGIN_TAG=latest
+PLUGIN_DIR=./splunk-log-plugin
 
 all: clean docker rootfs create
+package: clean docker rootfs zip
 
 clean:
-	@echo "### rm ./plugin"
-	rm -rf ./plugin
+	@echo "### rm ${PLUGIN_DIR}"
+	rm -rf ${PLUGIN_DIR}
 
 docker:
 	@echo "### docker build: rootfs image with splunk-log-plugin"
 	docker build -t ${PLUGIN_NAME}:rootfs .
 
 rootfs:
-	@echo "### create rootfs directory in ./plugin/rootfs"
-	mkdir -p ./plugin/rootfs
+	@echo "### create rootfs directory in ${PLUGIN_DIR}/rootfs"
+	mkdir -p ${PLUGIN_DIR}/rootfs
 	docker create --name tmprootfs ${PLUGIN_NAME}:rootfs
-	docker export tmprootfs | tar -x -C ./plugin/rootfs
-	@echo "### copy config.json to ./plugin/"
-	cp config.json ./plugin/
+	docker export tmprootfs | tar -x -C ${PLUGIN_DIR}/rootfs
+	@echo "### copy config.json to ${PLUGIN_DIR}/"
+	cp config.json ${PLUGIN_DIR}/
 	docker rm -vf tmprootfs
 
 create:
 	@echo "### remove existing plugin ${PLUGIN_NAME}:${PLUGIN_TAG} if exists"
 	docker plugin rm -f ${PLUGIN_NAME}:${PLUGIN_TAG} || true
-	@echo "### create new plugin ${PLUGIN_NAME}:${PLUGIN_TAG} from ./plugin"
-	docker plugin create ${PLUGIN_NAME}:${PLUGIN_TAG} ./plugin
+	@echo "### create new plugin ${PLUGIN_NAME}:${PLUGIN_TAG} from ${PLUGIN_DIR}"
+	docker plugin create ${PLUGIN_NAME}:${PLUGIN_TAG} ${PLUGIN_DIR}
+
+zip:
+	@echo "### create a tar.gz for plugin"
+	tar -cvzf ${PLUGIN_NAME}.tar.gz ${PLUGIN_DIR}
 
 enable:
 	@echo "### enable plugin ${PLUGIN_NAME}:${PLUGIN_TAG}"
@@ -33,4 +39,3 @@ enable:
 push: clean docker rootfs create enable
 	@echo "### push plugin ${PLUGIN_NAME}:${PLUGIN_TAG}"
 	docker plugin push ${PLUGIN_NAME}:${PLUGIN_TAG}
-
