@@ -80,7 +80,6 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 }
 
 // send the log entry message to logger
-
 func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry, t *partialMsgBuffer, containerid string) {
 	var msg logger.Message
 	// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
