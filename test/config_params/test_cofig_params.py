@@ -4,6 +4,7 @@ import uuid
 import os
 import logging
 import json
+import socket
 from urllib.parse import urlparse
 from ..common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
@@ -165,6 +166,15 @@ def test_splunk_ca(setup):
     parsed_url = urlparse(setup["splunk_hec_url"])
     hec_ip = parsed_url.hostname
     hec_port = parsed_url.port
+
+    # check if it is an IP address
+    try:
+        socket.inet_aton(hec_ip)
+    except socket.error:
+        # if it is not an IP address, it is a hostname
+        # do a hostname to IP lookup
+        hec_ip = socket.gethostbyname(hec_ip)
+
     splunk_hec_url = "https://SplunkServerDefaultCert:{0}".format(hec_port)
 
     if "SplunkServerDefaultCert" not in open('/etc/hosts').read():
