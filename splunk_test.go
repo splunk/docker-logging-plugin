@@ -364,8 +364,8 @@ func TestInlineFormatWithNonDefaultOptions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !hec.connectionVerified {
-		t.Fatal("By default connection should be verified")
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
 	}
 
 	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerInline)
@@ -464,8 +464,8 @@ func TestJsonFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !hec.connectionVerified {
-		t.Fatal("By default connection should be verified")
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
 	}
 
 	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerJSON)
@@ -581,8 +581,8 @@ func TestRawFormat(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !hec.connectionVerified {
-		t.Fatal("By default connection should be verified")
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
 	}
 
 	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerRaw)
@@ -695,8 +695,8 @@ func TestRawFormatWithLabels(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !hec.connectionVerified {
-		t.Fatal("By default connection should be verified")
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
 	}
 
 	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerRaw)
@@ -807,8 +807,8 @@ func TestRawFormatWithoutTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !hec.connectionVerified {
-		t.Fatal("By default connection should be verified")
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
 	}
 
 	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerRaw)
@@ -942,8 +942,8 @@ func TestBatching(t *testing.T) {
 		}
 	}
 
-	// 1 to verify connection and 16 batches
-	if hec.numOfRequests != 17 {
+	// 16 batches
+	if hec.numOfRequests != 16 {
 		t.Fatalf("Unexpected number of requests %d", hec.numOfRequests)
 	}
 
@@ -1089,8 +1089,8 @@ func TestOneMessagePerRequest(t *testing.T) {
 		}
 	}
 
-	// 1 to verify connection and 10 messages
-	if hec.numOfRequests != 11 {
+	// 10 messages
+	if hec.numOfRequests != 10 {
 		t.Fatalf("Unexpected number of requests %d", hec.numOfRequests)
 	}
 
@@ -1124,8 +1124,9 @@ func TestVerify(t *testing.T) {
 
 	info := logger.Info{
 		Config: map[string]string{
-			splunkURLKey:   hec.URL(),
-			splunkTokenKey: hec.token,
+			splunkURLKey:              hec.URL(),
+			splunkTokenKey:            hec.token,
+			splunkVerifyConnectionKey: "true",
 		},
 		ContainerID:        "containeriid",
 		ContainerName:      "/container_name",
