@@ -1,6 +1,6 @@
-PLUGIN_NAME=splunk-log-plugin
+PLUGIN_NAME=splunk-logging-plugin
 PLUGIN_TAG=latest
-PLUGIN_DIR=./splunk-log-plugin
+PLUGIN_DIR=./splunk-logging-plugin
 
 all: clean docker rootfs create
 package: clean docker rootfs zip
@@ -10,7 +10,7 @@ clean:
 	rm -rf ${PLUGIN_DIR}
 
 docker:
-	@echo "### docker build: rootfs image with splunk-log-plugin"
+	@echo "### docker build: rootfs image with splunk-logging-plugin"
 	docker build -t ${PLUGIN_NAME}:rootfs .
 
 rootfs:

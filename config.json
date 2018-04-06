@@ -1,7 +1,7 @@
 {
 	"description": "Splunk Logging Plugin",
 	"documentation": "https://github.com/splunk/docker-logging-plugin",
-	"entrypoint": ["/bin/splunk-log-plugin"],
+	"entrypoint": ["/bin/splunk-logging-plugin"],
     "network": {
         "type": "host"
     },
