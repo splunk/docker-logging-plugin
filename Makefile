@@ -1,4 +1,4 @@
-PLUGIN_NAME=splunk-logging-plugin
+PLUGIN_NAME=splunk/docker-logging-plugin
 PLUGIN_TAG=latest
 PLUGIN_DIR=./splunk-logging-plugin
 
