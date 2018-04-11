@@ -77,6 +77,8 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		// }
 		buf.Reset()
 	}
+
+	logrus.Debugf("Closing reader.")
 }
 
 // send the log entry message to logger
