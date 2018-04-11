@@ -19,6 +19,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"io"
 	"time"
 	"unicode/utf8"
 
@@ -49,33 +50,33 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 	dec := protoio.NewUint32DelimitedReader(lf.reader, binary.BigEndian, 1e6)
 	defer dec.Close()
 	// a temp buffer for each log entry
-	// var buf logdriver.LogEntry
-	// for {
-	// 	// reads a message from the log stream and put it in a buffer until the EOF
-	// 	// if there is any other error, recreate the stream reader
-	// 	if err := dec.ReadMsg(&buf); err != nil {
-	// 		if err == io.EOF {
-	// 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
-	// 			lf.reader.Close()
-	// 			return
-	// 		}
+	var buf logdriver.LogEntry
+	for {
+		// reads a message from the log stream and put it in a buffer until the EOF
+		// if there is any other error, recreate the stream reader
+		if err := dec.ReadMsg(&buf); err != nil {
+			if err == io.EOF {
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
+				lf.reader.Close()
+				return
+			}
 
-	// 		logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
-	// 		dec = protoio.NewUint32DelimitedReader(lf.reader, binary.BigEndian, 1e6)
-	// 	}
+			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
+			dec = protoio.NewUint32DelimitedReader(lf.reader, binary.BigEndian, 1e6)
+		}
 
-	// 	if mg.shouldSendMessage(buf.Line) {
-	// 		// Append to temp buffer
-	// 		if err := tmpBuf.append(&buf); err == nil {
-	// 			// Send message to splunk and json logger
-	// 			mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
-	// 			mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
-	// 			//temp buffer and values reset
-	// 			tmpBuf.reset()
-	// 		}
-	// 	}
-	// 	buf.Reset()
-	// }
+		// if mg.shouldSendMessage(buf.Line) {
+		// 	// Append to temp buffer
+		// 	if err := tmpBuf.append(&buf); err == nil {
+		// 		// Send message to splunk and json logger
+		// 		mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
+		// 		mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+		// 		//temp buffer and values reset
+		// 		tmpBuf.reset()
+		// 	}
+		// }
+		buf.Reset()
+	}
 }
 
 // send the log entry message to logger
