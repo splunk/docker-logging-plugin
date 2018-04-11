@@ -479,7 +479,12 @@ func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
 	if l.closedCond != nil {
 		return fmt.Errorf("%s: driver is closed", driverName)
 	}
-	l.stream <- message
+	select {
+	case l.stream <- message:
+	default:
+		logrus.Debug("stream is full, discarding value")
+	}
+
 	return nil
 }
 
