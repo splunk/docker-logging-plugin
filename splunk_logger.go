@@ -490,13 +490,14 @@ Do a HEC POST when
 - time out
 */
 func (l *splunkLogger) worker() {
-	timer := time.NewTicker(l.hec.postMessagesFrequency)
 	var messages []*splunkMessage
 	for {
+		timer := time.NewTicker(l.hec.postMessagesFrequency)
 		select {
 		case message, open := <-l.stream:
 			// if the stream channel is closed, post the remaining messages in the buffer
 			if !open {
+				logrus.Debugf("stream is closed with %d events", len(messages))
 				l.hec.postMessages(messages, true)
 				l.lock.Lock()
 				defer l.lock.Unlock()
@@ -513,6 +514,7 @@ func (l *splunkLogger) worker() {
 				messages = l.hec.postMessages(messages, false)
 			}
 		case <-timer.C:
+			logrus.Debugf("messages buffer timeout, sending %d events", len(messages))
 			messages = l.hec.postMessages(messages, false)
 		}
 	}
