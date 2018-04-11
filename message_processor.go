@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"os"
 	"time"
 	"unicode/utf8"
 
@@ -43,9 +44,9 @@ and send the buffer to splunk logger and json logger
 */
 func (mg messageProcessor) consumeLog(lf *logPair) {
 	// Initialize temp buffer
-	// tmpBuf := &partialMsgBuffer{
-	// 	bufferTimer: time.Now(),
-	// }
+	tmpBuf := &partialMsgBuffer{
+		bufferTimer: time.Now(),
+	}
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.reader, binary.BigEndian, 1e6)
 	defer dec.Close()
@@ -61,20 +62,26 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 				return
 			}
 
+			if err == os.ErrClosed {
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("container closed the log stream")
+				lf.reader.Close()
+				return
+			}
+
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
 			dec = protoio.NewUint32DelimitedReader(lf.reader, binary.BigEndian, 1e6)
 		}
 
-		// if mg.shouldSendMessage(buf.Line) {
-		// 	// Append to temp buffer
-		// 	if err := tmpBuf.append(&buf); err == nil {
-		// 		// Send message to splunk and json logger
-		// 		mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
-		// 		mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
-		// 		//temp buffer and values reset
-		// 		tmpBuf.reset()
-		// 	}
-		// }
+		if mg.shouldSendMessage(buf.Line) {
+			// Append to temp buffer
+			if err := tmpBuf.append(&buf); err == nil {
+				// Send message to splunk and json logger
+				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
+				// mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				//temp buffer and values reset
+				tmpBuf.reset()
+			}
+		}
 		buf.Reset()
 	}
 
