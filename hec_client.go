@@ -88,6 +88,7 @@ func (hec *hecClient) tryPostMessages(messages []*splunkMessage) error {
 		logrus.Debug("No message to post")
 		return nil
 	}
+	logrus.Infof("Posint %d messages", len(messages))
 	var buffer bytes.Buffer
 	var writer io.Writer
 	var gzipWriter *gzip.Writer
