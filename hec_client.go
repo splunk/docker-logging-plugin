@@ -48,7 +48,7 @@ type hecClient struct {
 }
 
 func (hec *hecClient) postMessages(messages []*splunkMessage, lastChance bool) []*splunkMessage {
-	logrus.Debugf("Received %d messages.", len(messages))
+	logrus.Infof("Received %d messages.", len(messages))
 	messagesLen := len(messages)
 	for i := 0; i < messagesLen; i += hec.postMessagesBatchSize {
 		upperBound := i + hec.postMessagesBatchSize
@@ -74,12 +74,12 @@ func (hec *hecClient) postMessages(messages []*splunkMessage, lastChance bool) [
 				return messages[upperBound:messagesLen]
 			}
 			// Not all sent, returning buffer from where we have not sent messages
-			logrus.Debugf("%d messages failed to sent", messagesLen)
+			logrus.Infof("%d messages failed to sent", messagesLen)
 			return messages[i:messagesLen]
 		}
 	}
 	// All sent, return empty buffer
-	logrus.Debugf("%d messages were sent successfully", messagesLen)
+	logrus.Infof("%d messages were sent successfully", messagesLen)
 	return messages[:0]
 }
 
