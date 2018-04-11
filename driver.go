@@ -59,6 +59,7 @@ func newDriver() *driver {
 }
 
 func (d *driver) StartLogging(file string, logCtx logger.Info) error {
+	logrus.WithField("file", file).WithField("containerID", logCtx.ContainerID).Debugf("Start Logging")
 	d.mu.Lock()
 	// check if the specific file is already attached to a logger
 	if _, exists := d.logs[file]; exists {
