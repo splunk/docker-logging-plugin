@@ -47,7 +47,7 @@ type driver struct {
 type logPair struct {
 	jsonl   logger.Logger
 	splunkl logger.Logger
-	stream  io.ReadCloser
+	reader  io.ReadCloser
 	info    logger.Info
 }
 
@@ -119,7 +119,7 @@ func (d *driver) StopLogging(file string) error {
 	d.mu.Lock()
 	lf, ok := d.logs[file]
 	if ok {
-		lf.stream.Close()
+		lf.reader.Close()
 		delete(d.logs, file)
 	}
 	d.mu.Unlock()
