@@ -514,7 +514,7 @@ func (l *splunkLogger) worker() {
 				messages = l.hec.postMessages(messages, false)
 			}
 		case <-timer.C:
-			logrus.Debugf("timeout sending %s events", len(messages))
+			logrus.Debugf("messages buffer timeout, sending %d events", len(messages))
 			messages = l.hec.postMessages(messages, false)
 		}
 	}
