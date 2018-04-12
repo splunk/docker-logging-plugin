@@ -474,16 +474,16 @@ func (l *splunkLoggerRaw) Log(msg *logger.Message) error {
 }
 
 func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
-	l.lock.RLock()
-	defer l.lock.RUnlock()
-	if l.closedCond != nil {
-		return fmt.Errorf("%s: driver is closed", driverName)
-	}
-	select {
-	case l.stream <- message:
-	default:
-		logrus.Debug("stream is full, discarding value")
-	}
+	// l.lock.RLock()
+	// defer l.lock.RUnlock()
+	// if l.closedCond != nil {
+	// 	return fmt.Errorf("%s: driver is closed", driverName)
+	// }
+	// select {
+	// case l.stream <- message:
+	// default:
+	// 	logrus.Debug("stream is full, discarding value")
+	// }
 
 	return nil
 }

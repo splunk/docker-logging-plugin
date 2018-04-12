@@ -49,11 +49,11 @@ func (b *partialMsgBuffer) append(l *logdriver.LogEntry) (err error) {
 }
 
 func (b *partialMsgBuffer) reset() {
-	// if b.bufferReset {
-	// logrus.Debug("Resetting temp buffer")
-	b.tBuf.Reset()
-	b.bufferTimer = time.Now()
-	// }
+	if b.bufferReset {
+		// logrus.Debug("Resetting temp buffer")
+		b.tBuf.Reset()
+		b.bufferTimer = time.Now()
+	}
 }
 
 func (b *partialMsgBuffer) hasHoldDurationExpired(t time.Time) bool {
