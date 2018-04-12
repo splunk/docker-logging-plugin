@@ -76,7 +76,7 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and json logger
-				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
+				// mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
 				// mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
 				//temp buffer and values reset
 				tmpBuf.reset()
