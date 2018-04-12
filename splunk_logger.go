@@ -474,16 +474,12 @@ func (l *splunkLoggerRaw) Log(msg *logger.Message) error {
 }
 
 func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
-	// l.lock.RLock()
-	// defer l.lock.RUnlock()
-	// if l.closedCond != nil {
-	// 	return fmt.Errorf("%s: driver is closed", driverName)
-	// }
-	// select {
-	// case l.stream <- message:
-	// default:
-	// 	logrus.Debug("stream is full, discarding value")
-	// }
+	l.lock.RLock()
+	defer l.lock.RUnlock()
+	if l.closedCond != nil {
+		return fmt.Errorf("%s: driver is closed", driverName)
+	}
+	l.stream <- message
 
 	return nil
 }
@@ -519,7 +515,7 @@ func (l *splunkLogger) worker() {
 				messages = l.hec.postMessages(messages, false)
 			}
 		case <-timer.C:
-			logrus.Debugf("timeout sending %s events", len(messages))
+			logrus.Debugf("timeout sending %d events", len(messages))
 			messages = l.hec.postMessages(messages, false)
 		}
 	}
@@ -530,6 +526,7 @@ func (l *splunkLogger) Close() error {
 	defer l.lock.Unlock()
 	if l.closedCond == nil {
 		l.closedCond = sync.NewCond(&l.lock)
+		logrus.Debug("Splunk Logger closing stream.")
 		close(l.stream)
 		for !l.closed {
 			l.closedCond.Wait()
