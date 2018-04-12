@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
-	"os"
 	"time"
 	"unicode/utf8"
 
@@ -62,7 +61,7 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 				return
 			}
 
-			if err == os.ErrClosed {
+			if err == io.ErrClosedPipe {
 				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("container closed the log stream")
 				lf.reader.Close()
 				return
