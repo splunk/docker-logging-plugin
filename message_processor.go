@@ -89,7 +89,7 @@ func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry,
 			buf.Partial).WithField("Temp buffer Length:", t.tBuf.Len()).Debug("Buffer details")
 		msg.Line = t.tBuf.Bytes()
 		msg.Source = buf.Source
-		msg.Partial = buf.Partial
+//		msg.Partial = buf.Partial
 		msg.Timestamp = time.Unix(0, buf.TimeNano)
 
 		if err := l.Log(&msg); err != nil {
