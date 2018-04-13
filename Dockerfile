@@ -4,8 +4,10 @@ WORKDIR /go/src/github.com/splunk/splunk-logging-plugin/
 
 COPY . /go/src/github.com/splunk/splunk-logging-plugin/
 
+# install dep
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
-RUN cd /go/src/github.com/splunk/splunk-logging-plugin && go get
+RUN cd /go/src/github.com/splunk/splunk-logging-plugin && dep ensure
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /bin/splunk-logging-plugin .
 
