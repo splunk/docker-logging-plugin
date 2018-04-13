@@ -1,0 +1,96 @@
+hash: d6b7016c93eb55f33a869d29859230a9d525b38e34e54ce936e67018e59b4a68
+updated: 2018-04-13T14:23:47.058556-07:00
+imports:
+- name: github.com/Azure/go-ansiterm
+  version: d6e3b3328b783f23731bc4d058875b0371ff8109
+  subpackages:
+  - winterm
+- name: github.com/coreos/go-systemd
+  version: d1b7d058aa2adfc795ad17ff4aaa2bc64ec11c78
+  subpackages:
+  - activation
+- name: github.com/docker/docker
+  version: 90d35abf7b3535c1c319c872900fbd76374e521c
+  subpackages:
+  - api/types
+  - api/types/backend
+  - api/types/blkiodev
+  - api/types/container
+  - api/types/filters
+  - api/types/mount
+  - api/types/network
+  - api/types/plugins/logdriver
+  - api/types/registry
+  - api/types/strslice
+  - api/types/swarm
+  - api/types/versions
+  - daemon/logger
+  - daemon/logger/jsonfilelog
+  - daemon/logger/loggerutils
+  - pkg/filenotify
+  - pkg/ioutils
+  - pkg/jsonlog
+  - pkg/jsonmessage
+  - pkg/longpath
+  - pkg/plugingetter
+  - pkg/plugins
+  - pkg/plugins/transport
+  - pkg/progress
+  - pkg/pubsub
+  - pkg/random
+  - pkg/streamformatter
+  - pkg/stringid
+  - pkg/tailfile
+  - pkg/templates
+  - pkg/term
+  - pkg/term/windows
+  - pkg/urlutil
+- name: github.com/docker/go-connections
+  version: 7395e3f8aa162843a74ed6d48e79627d9792ac55
+  subpackages:
+  - nat
+  - sockets
+  - tlsconfig
+- name: github.com/docker/go-plugins-helpers
+  version: 61cb8e2334204460162c8bd2417cd43cb71da66f
+  subpackages:
+  - sdk
+- name: github.com/docker/go-units
+  version: 47565b4f722fb6ceae66b95f853feed578a4a51c
+- name: github.com/fsnotify/fsnotify
+  version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
+- name: github.com/gogo/protobuf
+  version: 1adfc126b41513cc696b209667c8656ea7aac67c
+  subpackages:
+  - io
+  - proto
+- name: github.com/Microsoft/go-winio
+  version: 7da180ee92d8bd8bb8c37fc560e673e6557c392f
+- name: github.com/Nvveen/Gotty
+  version: cd527374f1e5bff4938207604a14f2e38a9cf512
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/Sirupsen/logrus
+  version: c155da19408a8799da419ed3eeb0cb5db0ad5dbc
+- name: github.com/tonistiigi/fifo
+  version: 3d5202aec260678c48179c56f40e6f38a095738c
+- name: golang.org/x/crypto
+  version: d6449816ce06963d9d136eee5a56fca5b0616e7e
+  subpackages:
+  - ssh/terminal
+- name: golang.org/x/net
+  version: 61147c48b25b599e5b561d2e9c4f3e1ef489ca41
+  subpackages:
+  - context
+  - internal/socks
+  - proxy
+- name: golang.org/x/sys
+  version: f6f352972f061230a99fbf49d1eb8073ebdb36cb
+  subpackages:
+  - unix
+  - windows
+- name: golang.org/x/time
+  version: fbb02b2291d28baffd63558aa44b4b56f178d650
+  subpackages:
+  - rate
+testImports: []

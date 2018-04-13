@@ -4,8 +4,10 @@ WORKDIR /go/src/github.com/splunk/splunk-logging-plugin/
 
 COPY . /go/src/github.com/splunk/splunk-logging-plugin/
 
+# install glide
+RUN curl https://glide.sh/get | sh
 
-RUN cd /go/src/github.com/splunk/splunk-logging-plugin && go get
+RUN cd /go/src/github.com/splunk/splunk-logging-plugin && glide install
 
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /bin/splunk-logging-plugin .
 

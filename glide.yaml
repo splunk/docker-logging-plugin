@@ -1,0 +1,23 @@
+package: .
+import:
+- package: github.com/Sirupsen/logrus
+  version: ^1.0.5
+- package: github.com/docker/docker
+  version: ^17.3.0-ce
+  subpackages:
+  - api/types/plugins/logdriver
+  - daemon/logger
+  - daemon/logger/jsonfilelog
+  - daemon/logger/loggerutils
+  - pkg/ioutils
+  - pkg/urlutil
+- package: github.com/docker/go-plugins-helpers
+  subpackages:
+  - sdk
+- package: github.com/gogo/protobuf
+  version: ^1.0.0
+  subpackages:
+  - io
+- package: github.com/pkg/errors
+  version: ^0.8.0
+- package: github.com/tonistiigi/fifo
