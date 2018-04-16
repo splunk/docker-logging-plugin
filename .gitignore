@@ -3,3 +3,4 @@ splunk-logging-plugin.tar.gz
 .idea/
 .DS_Store
 *.pyc
+vendor/
