@@ -57,7 +57,7 @@ def test_malformed_empty_string(setup, test_input, expected):
 
     # check that events get to splunk
     events = check_events_from_splunk(id=u_id,
-                                      start_time="-1m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
