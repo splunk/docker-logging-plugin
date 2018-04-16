@@ -50,7 +50,7 @@ def test_partial_log(setup, test_input, expected):
 
     # check that events get to splunk
     events = check_events_from_splunk(id=u_id,
-                                      start_time="-5m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
@@ -87,7 +87,7 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
 
     # check that events get to splunk
     events = check_events_from_splunk(id=u_id,
-                                      start_time="-5m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
@@ -122,7 +122,7 @@ def test_partial_log_flush_size_limit(setup):
 
     # check that events get to splunk
     events = check_events_from_splunk(id=u_id,
-                                      start_time="-5m@m",
+                                      start_time="-15m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
