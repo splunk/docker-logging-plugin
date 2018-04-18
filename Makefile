@@ -30,7 +30,7 @@ create:
 
 zip:
 	@echo "### create a tar.gz for plugin"
-	tar -cvzf ${PLUGIN_NAME}.tar.gz ${PLUGIN_DIR}
+	tar -cvzf splunk-logging-plugin.tar.gz ${PLUGIN_DIR}
 
 enable:
 	@echo "### enable plugin ${PLUGIN_NAME}:${PLUGIN_TAG}"
