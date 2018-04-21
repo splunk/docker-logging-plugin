@@ -19,7 +19,6 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"io"
 	"time"
 	"unicode/utf8"
 
@@ -55,15 +54,15 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		// reads a message from the log stream and put it in a buffer until the EOF
 		// if there is any other error, recreate the stream reader
 		if err := dec.ReadMsg(&buf); err != nil {
-			if err == io.EOF {
-				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
-				lf.stream.Close()
-				lf.splunkl.Close()
-				return
-			}
+			// if err == io.EOF {
+			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
+			lf.stream.Close()
+			lf.splunkl.Close()
+			return
+			// }
 
-			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
-			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
+			// logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
+			// dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
 
 		if mg.shouldSendMessage(buf.Line) {
