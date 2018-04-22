@@ -120,6 +120,7 @@ func (d *driver) StopLogging(file string) error {
 	if ok {
 		lf.stream.Close()
 		lf.splunkl.Close()
+		lf.jsonl.Close()
 		delete(d.logs, file)
 	}
 	d.mu.Unlock()
