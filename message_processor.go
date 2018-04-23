@@ -19,6 +19,9 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"io"
+	"os"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -29,6 +32,7 @@ import (
 )
 
 type messageProcessor struct {
+	retryNumber int
 }
 
 func (mg messageProcessor) process(lf *logPair) {
@@ -48,16 +52,34 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
+	defer lf.Close()
 	// a temp buffer for each log entry
 	var buf logdriver.LogEntry
+	curRetryNumber := 0
 	for {
 		// reads a message from the log stream and put it in a buffer
-		// if there is any error, shut down the logger to prevent memory/cpu loop.
 		if err := dec.ReadMsg(&buf); err != nil {
-			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
-			lf.Close()
-			return
+			// exit the loop if reader reaches EOF or the fifo is closed by the writer or retry reaches the specified number
+			if err == io.EOF || err == os.ErrClosed || strings.Contains(err.Error(), "file already closed") || curRetryNumber >= mg.retryNumber {
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
+				return
+			}
+
+			// if there is any other error, retry for robustness. If retryNumber is -1, retry forever
+			if curRetryNumber < mg.retryNumber || mg.retryNumber == -1 {
+				if mg.retryNumber != -1 {
+					logrus.WithField("id", lf.info.ContainerID).WithError(err).Debugf("Retrying %d time", curRetryNumber)
+					curRetryNumber = curRetryNumber + 1
+				} else {
+					logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Retrying forever until successful")
+				}
+
+				dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
+				// sleep for 500ms
+				time.Sleep(500 * time.Millisecond)
+			}
 		}
+		curRetryNumber = 0
 
 		if mg.shouldSendMessage(buf.Line) {
 			// Append to temp buffer
