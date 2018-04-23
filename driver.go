@@ -52,6 +52,7 @@ type logPair struct {
 }
 
 func (lf *logPair) Close() {
+	logrus.Info("closing everything")
 	lf.stream.Close()
 	lf.splunkl.Close()
 	lf.jsonl.Close()
