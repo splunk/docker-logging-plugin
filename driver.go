@@ -25,7 +25,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"sync"
 	"syscall"
 
@@ -56,7 +55,6 @@ func (lf *logPair) Close() {
 	lf.stream.Close()
 	lf.splunkl.Close()
 	lf.jsonl.Close()
-	debug.FreeOSMemory()
 }
 
 func newDriver() *driver {
