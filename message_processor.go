@@ -19,6 +19,9 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"io"
+	"os"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -29,6 +32,7 @@ import (
 )
 
 type messageProcessor struct {
+	retryNumber int
 }
 
 func (mg messageProcessor) process(lf *logPair) {
@@ -50,13 +54,22 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 	defer dec.Close()
 	// a temp buffer for each log entry
 	var buf logdriver.LogEntry
+	curRetryNumber := 0
 	for {
 		// reads a message from the log stream and put it in a buffer
-		// if there is any error, shut down the logger to prevent memory/cpu loop.
+		// if there is any error, shutting down the logger to prevent memory/cpu loop.
 		if err := dec.ReadMsg(&buf); err != nil {
-			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
-			lf.Close()
-			return
+			if err == io.EOF || err == os.ErrClosed || strings.Contains(err.Error(), "file already closed") || curRetryNumber >= mg.retryNumber {
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
+				lf.Close()
+				return
+			}
+
+			if curRetryNumber < mg.retryNumber {
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debugf("Retrying %d time", curRetryNumber)
+				dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
+				curRetryNumber = curRetryNumber + 1
+			}
 		}
 
 		if mg.shouldSendMessage(buf.Line) {
