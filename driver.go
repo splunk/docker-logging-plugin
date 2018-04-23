@@ -51,6 +51,12 @@ type logPair struct {
 	info    logger.Info
 }
 
+func (lf *logPair) Close() {
+	lf.stream.Close()
+	lf.splunkl.Close()
+	lf.jsonl.Close()
+}
+
 func newDriver() *driver {
 	return &driver{
 		logs: make(map[string]*logPair),
@@ -118,7 +124,7 @@ func (d *driver) StopLogging(file string) error {
 	d.mu.Lock()
 	lf, ok := d.logs[file]
 	if ok {
-		lf.stream.Close()
+		lf.Close()
 		delete(d.logs, file)
 	}
 	d.mu.Unlock()
