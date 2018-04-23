@@ -86,8 +86,8 @@ func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry,
 	// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
 	// Check for temp buffer timer expiration
 	if !buf.Partial || t.shouldFlush(time.Now()) {
-		logrus.WithField("id", containerid).WithField("Buffer partial flag should be false:",
-			buf.Partial).WithField("Temp buffer Length:", t.tBuf.Len()).Debug("Buffer details")
+		// logrus.WithField("id", containerid).WithField("Buffer partial flag should be false:",
+		// buf.Partial).WithField("Temp buffer Length:", t.tBuf.Len()).Debug("Buffer details")
 		msg.Line = t.tBuf.Bytes()
 		msg.Source = buf.Source
 		msg.Partial = buf.Partial
