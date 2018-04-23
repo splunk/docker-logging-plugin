@@ -59,7 +59,7 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		// if there is any error, shutting down the logger to prevent memory/cpu loop.
 		if err := dec.ReadMsg(&buf); err != nil {
 			if err == io.EOF || err == os.ErrClosed || curRetryNumber >= mg.retryNumber {
-				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Info("shutting down log logger")
 				return
 			}
 
