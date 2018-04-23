@@ -61,7 +61,6 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		if err := dec.ReadMsg(&buf); err != nil {
 			if err == io.EOF || err == os.ErrClosed || strings.Contains(err.Error(), "file already closed") || curRetryNumber >= mg.retryNumber {
 				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
-				lf.Close()
 				return
 			}
 
