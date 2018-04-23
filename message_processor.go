@@ -58,6 +58,7 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
 			lf.stream.Close()
 			lf.splunkl.Close()
+			lf.jsonl.Close()
 			return
 			// }
 
