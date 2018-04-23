@@ -425,6 +425,7 @@ func getAdvancedOptionDuration(envName string, defaultValue time.Duration) time.
 
 func getAdvancedOptionInt(envName string, defaultValue int) int {
 	valueStr := os.Getenv(envName)
+	logrus.Infof("%s = %s", envName, valueStr)
 	if valueStr == "" {
 		return defaultValue
 	}
