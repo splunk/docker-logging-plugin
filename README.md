@@ -2,7 +2,9 @@
 # What does Splunk Connect for Docker do?
 Splunk Connect for Docker is a plug-in that extends and expands Docker's logging capabilities so that customers can push their Docker and container logs to their Splunk on-premise or cloud deployment.
 
-Splunk Connect for Docker is a supported open source product. Customers with an active Splunk support contract receive Splunk Extension support under the Splunk Support Policy. Splunk Connect for Docker is not supported on windows. Please refer to Docker Engine managed plugin system documentation on support for Microsoft Windows and other platforms as well as Prerequisites in this document. 
+Splunk Connect for Docker is a supported open source product. Customers with an active Splunk support contract receive Splunk Extension support under the Splunk Support Policy, which can be found at https://www.splunk.com/en_us/legal/splunk-software-support-policy.html. 
+
+See the Docker Engine managed plugin system documentation at https://docs.docker.com/engine/extend/ on support for Microsoft Windows and other platforms. See the Prerequisites in this document for more information about system requirements. 
 
 # Prerequisites
 Before you install Splunk Connect for Docker, make sure your system meets the following minimum prerequisites:
@@ -27,7 +29,7 @@ http://docs.splunk.com/Documentation/Splunk/7.0.3/Data/UseHECusingconffiles
 Note the following when you generate your token:
 * Make sure that indexer acknowledgement is disabled for your token. 
 * Optionally, enable the indexer acknowledgement functionality by clicking the Enable indexer management checkbox. 
-* Do not generate your token using the default TLS cert provided by Splunk. For information about configuring Splunk to use self-signed or third-party certs, see http://docs.splunk.com/Documentation/Splunk/7.0.3/Security/AboutsecuringyourSplunkconfigurationwithSSL.
+* Do not generate your token using the default TLS cert provided by Splunk. The default certificates are not secure. For information about configuring Splunk to use self-signed or third-party certs, see http://docs.splunk.com/Documentation/Splunk/7.0.3/Security/AboutsecuringyourSplunkconfigurationwithSSL.
 * Splunk Cloud customers must file a support request in order to have a token generated.
 
 ## Step 2: Install the plugin 
@@ -152,6 +154,7 @@ env-regex | A regular expression to match logging-related environment variables.
 
 
 ### Advanced options - Environment Variables
+
 
 Variable | Description | Default
 ------------ | ------------- | -------------
