@@ -21,6 +21,43 @@
 			"description": "Set number of retry when reading fifo from docker failed. -1 means retry forever",
 			"value": "3",
 			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_POST_MESSAGES_FREQUENCY",
+			"description": "Set how often do we send messages (if we are not reaching batch size)",
+			"value": "5s",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_POST_MESSAGES_BATCH_SIZE",
+			"description": "Set number of messages to batch before buffer timeout",
+			"value": "1000",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_BUFFER_MAX",
+			"description": "Set maximum number of messages wait in the buffer before sent to Splunk",
+			"value": "10000",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE",
+			"description": "Set number of messages allowed to be queued in the channel when reading from the docker provided FIFO",
+			"value": "4000",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION",
+			"description": "Used when logs that are chunked by docker with 16kb limit. Set how long the system can wait for the next message to come.",
+			"value": "100ms",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE",
+			"description": "Used when logs that are chunked by docker with 16kb limit. Set the biggest message that the system can reassemble.",
+			"value": "1024 * 1024",
+			"settable": ["value"]
 		}
+
 	]
 }
