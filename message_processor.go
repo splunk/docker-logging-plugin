@@ -61,21 +61,15 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		if err := dec.ReadMsg(&buf); err != nil {
 			// exit the loop if reader reaches EOF or the fifo is closed by the writer or retry reaches the specified number
 			if err == io.EOF || err == os.ErrClosed || strings.Contains(err.Error(), "file already closed") || curRetryNumber >= mg.retryNumber {
-				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Info("shutting down log logger")
 				return
 			}
 
 			// if there is any other error, retry for robustness. If retryNumber is -1, retry forever
 			if curRetryNumber < mg.retryNumber || mg.retryNumber == -1 {
-				if mg.retryNumber != -1 {
-					logrus.WithField("id", lf.info.ContainerID).WithError(err).Debugf("Retrying %d time", curRetryNumber)
-					curRetryNumber = curRetryNumber + 1
-				} else {
-					logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Retrying forever until successful")
-				}
-
+				curRetryNumber = curRetryNumber + 1
+				logrus.WithField("id", lf.info.ContainerID).WithField("curRetryNumber", curRetryNumber).WithField("retryNumber", mg.retryNumber).WithError(err).Error("Encountered error and retrying")
 				dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
-				// sleep for 500ms
 				time.Sleep(500 * time.Millisecond)
 			}
 		}
