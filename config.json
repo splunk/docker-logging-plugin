@@ -55,9 +55,8 @@
 		{
 			"name": "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE",
 			"description": "Used when logs that are chunked by docker with 16kb limit. Set the biggest message that the system can reassemble.",
-			"value": "1024 * 1024",
+			"value": "1048576",
 			"settable": ["value"]
 		}
-
 	]
 }
