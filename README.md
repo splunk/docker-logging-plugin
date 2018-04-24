@@ -2,7 +2,9 @@
 # What does Splunk Connect for Docker do?
 Splunk Connect for Docker is a plug-in that extends and expands Docker's logging capabilities so that customers can push their Docker and container logs to their Splunk on-premise or cloud deployment.
 
-Splunk Connect for Docker is a supported open source product. Customers with an active Splunk support contract receive Splunk Extension support under the Splunk support policy. Splunk Connect for Docker is not supported on Windows. Refer to Docker Engine managed plugin system documentation on support for Microsoft Windows and other platforms and to Prerequisites in this document for more information. 
+Splunk Connect for Docker is a supported open source product. Customers with an active Splunk support contract receive Splunk Extension support under the Splunk Support Policy, which can be found at https://www.splunk.com/en_us/legal/splunk-software-support-policy.html. 
+
+Splunk Connect for Docker is not currently supported on Windows. See the Prerequisites in this document for more information about system requirements. See the Docker Engine Managed Plugin system documentation for information about Docker support for Microsoft Windows and other platforms.
 
 # Prerequisites
 Before you install Splunk Connect for Docker, make sure your system meets the following minimum prerequisites:
