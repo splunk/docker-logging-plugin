@@ -74,8 +74,8 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 			// if there is any other error, retry for robustness. If retryNumber is -1, retry forever
 			curRetryNumber++
 			logrus.WithField("id", lf.info.ContainerID).WithField("curRetryNumber", curRetryNumber).WithField("retryNumber", mg.retryNumber).WithError(err).Error("Encountered error and retrying")
-			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 			time.Sleep(500 * time.Millisecond)
+			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
 		curRetryNumber = 0
 
