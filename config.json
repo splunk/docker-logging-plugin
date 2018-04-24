@@ -15,6 +15,12 @@
 			"description": "Set log level to output for plugin logs",
 			"value": "info",
 			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_FIFO_ERROR_RETRY_TIME",
+			"description": "Set number of retry when reading fifo from docker failed. -1 means retry forever",
+			"value": "3",
+			"settable": ["value"]
 		}
 	]
 }
