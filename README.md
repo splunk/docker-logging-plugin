@@ -37,43 +37,42 @@ There are multiple ways to install Splunk Connect for Docker, Splunk recommends 
 
 ### Install the Plugin from Docker Store
 
-1. Create the plugin from the package.
-
-	$ docker plugin install splunk/docker-logging-plugin --alias splunk-logging-plugin
-
-2. Enable the plugin:
-
-	$ docker plugin enable splunk-logging-plugin:latest
-
+1. Pull the plugin from docker hub.
+```
+$ docker plugin install splunk/docker-logging-plugin --alias splunk-logging-plugin
+```
+2. Enable the plugin if needed:
+```
+$ docker plugin enable splunk-logging-plugin:latest
+```
 ### Install the plugin from the tar file 
 
 1. Clone the repository and check out release branch
-
-	$ git clone  https://github.com/splunk/docker-logging-plugin.git
-
-	$ git checkout release/2.0.0
-
+```
+$ git clone  https://github.com/splunk/docker-logging-plugin.git
+$ git checkout release/2.0.0
+```
 2. Create the plugin package
-
-	$ cd docker-logging-plugin
-	$ make package # this creates a splunk-logging-plugin.tar.gz
-
+```
+$ cd docker-logging-plugin
+$ make package # this creates a splunk-logging-plugin.tar.gz
+```
 3. unzip the package
-
-	$ tar -xzf splunk-logging-plugin.tar.gz
-
+```
+$ tar -xzf splunk-logging-plugin.tar.gz
+```
 4. Create the plugin
-
-	$ docker plugin create splunk-logging-plugin:latest splunk-logging-plugin/
-
+```
+$ docker plugin create splunk-logging-plugin:latest splunk-logging-plugin/
+```
 5. Verify that the plugin is installed by running the following command:
-
-	$ docker plugin ls
-
+```
+$ docker plugin ls
+```
 6. Enable the plugin
-
-	$ docker plugin enable splunk-logging-plugin:latest
-
+```
+$ docker plugin enable splunk-logging-plugin:latest
+```
 ## Step 3: Run containers with the plugin installed
 
 Splunk Connect for Docker continually listens for logs, but your containers must also be running so that the container logs are forwarded to Splunk Connect for Docker. The following examples describe how to configure containers to run with Splunk Connect for Docker. 
