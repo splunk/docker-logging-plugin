@@ -162,7 +162,7 @@ SPLUNK_LOGGING_DRIVER_POST_MESSAGES_BATCH_SIZE | The number of messages the plug
 SPLUNK_LOGGING_DRIVER_BUFFER_MAX | The maximum amount of messages to hold in buffer and retry when the plug-in cannot connect to remote server. |  10 * 1000
 SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE | How many pending messages can be in the channel used to send messages to background logger worker, which batches them. | 4 * 1000
 SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION | Appends logs that are chunked by docker with 16kb limit. It specifies how long the system can wait for the next message to come. | 100ms 
-SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE	| Appends logs that are chunked by docker with 16kb limit. It specifies the biggest message that the system can reassemble. The value provided here should be smaller than or equal to the Splunk HEC limit. 1 MB is the default HEC setting. | 1mb
+SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE	| Appends logs that are chunked by docker with 16kb limit. It specifies the biggest message in bytes that the system can reassemble. The value provided here should be smaller than or equal to the Splunk HEC limit. 1 MB is the default HEC setting. | 1048576 (1mb)
 
 
 ### Message formats
