@@ -145,8 +145,8 @@ splunk-insecureskipverify| "false" means that the service certificates are valid
 splunk-format | Message format. Values can be inline, json, or raw. For more infomation about formats see the Messageformats option. | inline
 splunk-verify-connection| Upon plug-in startup, verify that Splunk Connect for Docker can connect to Splunk HEC endpoint. False indicates that Splunk Connect for Docker will start up and continue to try to connect to HEC and will push logs to buffer until connection has been establised. Logs will roll off buffer once buffer is full. True indicates that Splunk Connect for Docker will not start up if connection to HEC cannot be established. | false
 splunk-gzip | Enable/disable gzip compression to send events to Splunk Enterprise or Splunk Cloud instance. | false
-splunk-gzip-level | Set compression level for gzip. Valid values are -1 (default), 0 (no compression), 1 (best speed) … 9 (best compression). | DefaultCompression
-tag | Specify tag for message, which interpret some markup. Default value is {{.ID}} (12 characters of the container ID). Refer to the log tag option documentation for customizing the log tag format. https://docs.docker.com/v17.09/engine/admin/logging/log_tags/	| 
+splunk-gzip-level | Set compression level for gzip. Valid values are -1 (default), 0 (no compression), 1 (best speed) … 9 (best compression). | -1
+tag | Specify tag for message, which interpret some markup. Refer to the log tag option documentation for customizing the log tag format. https://docs.docker.com/v17.09/engine/admin/logging/log_tags/	| {{.ID}} (12 characters of the container ID)
 labels | Comma-separated list of keys of labels, which should be included in message, if these labels are specified for container. | 	
 env | Comma-separated list of keys of environment variables to be included in message if they specified for a container. | 	
 env-regex | A regular expression to match logging-related environment variables. Used for advanced log tag options. If there is collision between the label and env keys, the value of the env takes precedence. Both options add additional fields to the attributes of a logging message. | 	
@@ -157,7 +157,7 @@ env-regex | A regular expression to match logging-related environment variables.
 
 Variable | Description | Default
 ------------ | ------------- | -------------
-SPLUNK_LOGGING_DRIVER_POST_MESSAGES_FREQUENCY | How often plug-in posts messages when there is nothing to batch, i.e., the maximum time to wait for more messages to batch. The internal buffer used for batching is flushed either when the buffer is full (the disgnated batch size is reached) or the buffer timesout (specified by this frequency) | | 5s
+SPLUNK_LOGGING_DRIVER_POST_MESSAGES_FREQUENCY | How often plug-in posts messages when there is nothing to batch, i.e., the maximum time to wait for more messages to batch. The internal buffer used for batching is flushed either when the buffer is full (the disgnated batch size is reached) or the buffer timesout (specified by this frequency) | 5s
 SPLUNK_LOGGING_DRIVER_POST_MESSAGES_BATCH_SIZE | The number of messages the plug-in should collect before sending them in one batch. | 	1000	
 SPLUNK_LOGGING_DRIVER_BUFFER_MAX | The maximum amount of messages to hold in buffer and retry when the plug-in cannot connect to remote server. |  10 * 1000
 SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE | How many pending messages can be in the channel used to send messages to background logger worker, which batches them. | 4 * 1000
