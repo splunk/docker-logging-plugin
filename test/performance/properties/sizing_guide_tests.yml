@@ -1,0 +1,12 @@
+######################################
+###   Docker plugin perf test defaults
+######################################
+
+# Parent YAML files that define default properties for other tests
+_parent:
+    default.yml
+
+test_name: sizing_guide_test
+_test:
+    _module: control
+    _function: shared_test

@@ -1,0 +1,19 @@
+###############################################
+###  Docker plugin perf test conductor defaults
+###############################################
+
+# Parent YAML files that define default properties for other tests
+_parent:
+    - findpath(perftestshared)/default.yml
+
+# Roles to group hosts together
+_roles:
+    docker_plugin:
+        _host_count: 1
+        _hosts: [ec2-35-172-178-120.compute-1.amazonaws.com]
+        provision_new_hosts: False
+        _types:
+            docker_node:
+                _module: workers
+                _class: DockerPluginTest
+                _workers: 1
