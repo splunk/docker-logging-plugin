@@ -241,7 +241,6 @@ def run_test(
         br.execute_single_command(cmd)
 
 
-
 class MonitorPlugin(object):
 
     def monitor_process(self, processes, hec_url, hec_token):

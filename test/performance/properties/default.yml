@@ -6,6 +6,11 @@
 _parent:
     - findpath(perftestshared)/default.yml
 
+orca:
+    # Instance info
+    tags:
+        Name: docker_plugin_test
+    
 # Roles to group hosts together
 _roles:
     docker_plugin:
