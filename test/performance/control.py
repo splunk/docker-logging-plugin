@@ -169,9 +169,11 @@ def shared_test(ctrl):
     """
 
     # Deploy docker node
-    ctrl.roles['docker_plugin'].dispatch('deploy_and_enable_plugin', block_on_complete=True)
+    ctrl.roles['docker_plugin'].dispatch('deploy_and_enable_plugin',
+                                         block_on_complete=True)
 
-    ctrl.logger.info("Done with plugin deployment. Docker service is up and plugin enabled!")
+    ctrl.logger.info("Done with plugin deployment. "
+                     "Docker service is up and plugin enabled!")
 
     # Install splunk
     hec_urls = perftestshared.control.install_splunk(ctrl)

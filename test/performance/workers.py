@@ -26,56 +26,11 @@ class DockerPluginTest(object):
         :param control_logger:
         :return:
         """
+        command = ["echo", "eserv", "|", "sudo", "-S", "sh", "deploy_and_enable_plugin.sh"],
 
-        commands = [
-            ["echo", "eserv", "|", "sudo","-S", "apt-get", "update", "-y"],
-            ["curl", "-fsSL", "get.docker.com", "-o", "get-docker.sh"],
-            ["echo", "eserv", "|", "sudo", "-S", "sh", "get-docker.sh"],
-            ["echo", "eserv", "|", "sudo","-S","usermod", "-a", "-G", "docker", "eserv"],
-            ["echo", "eserv", "|", "sudo","-S","apt-get", "install", "make", "-y"]
-
-        ]
-
+        current_dir = os.getcwd()
         br = bridge.Bridge(control_logger)
-        br.execute_commands(commands)
-
-        # Install docker plugin
-        self._install_plugin(control_logger)
-
-    def _install_plugin(self, control_logger):
-
-        """
-        1- clone repo
-        2- cd
-        git clone https://github.com/splunk/docker-logging-plugin.git;
-        cd docker-logging-plugin;
-        git checkout develop
-        make
-        docker plugin enable splunk-log-plugin
-        """
-        # clone repo
-        br = bridge.Bridge(control_logger)
-        control_logger.info("Cloning plugin repo")
-        cmd_clone = ["git", "clone", "https://github.com/splunk/docker-logging-plugin.git"]
-
-        br.execute_single_command(cmd_clone)
-
-        # TODO: workaround branch, remove once issue is fixed
-        plugin_dir = os.path.abspath(os.path.normpath(os.path.join(os.getcwd(), PLUGIN_DIR)))
-        branch = 'fix-partial-msg-isse'
-        cmd_checkout = ['git', 'checkout', 'fix-partial-msg-isse']
-        br.execute_single_command(cmd_checkout,working_dir=plugin_dir)
-
-        # run make command
-        control_logger.info("Installing plugin with Make")
-        cmd_make = ["echo", "eserv", "|", "sudo","-S", "make"]
-        br.execute_single_command(cmd_make,working_dir=plugin_dir)
-
-        # Enable plugin
-        cmd_make.append('enable')
-        control_logger.info("Enabling plugin!")
-        br.execute_single_command(cmd_make,working_dir=plugin_dir)
-
+        br.execute_single_command(command, working_dir=current_dir)
 
     def run_throughput_test(
             self,
@@ -169,6 +124,7 @@ class DockerPluginTest(object):
 
 
 class SizingGuideTest(object):
+
     def run_guideline_test(
             self,
             hec_url,
