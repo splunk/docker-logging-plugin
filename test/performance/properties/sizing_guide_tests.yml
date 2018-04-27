@@ -9,7 +9,7 @@ _parent:
 test_name: sizing_guide_test
 _test:
     _module: control
-    _function: shared_test
+    _function: sizing_guide_test
 # Test properties
 monitor_run_interval: 3
 test_params:
