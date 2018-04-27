@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 import bridge
 import proc_monitor
@@ -245,9 +244,9 @@ def run_test(
 
 class MonitorPlugin(object):
 
-    def monitor_process(self, hec_url, hec_token):
+    def monitor_process(self, processes, hec_url, hec_token):
         proc_monitor.collect_process_data(
-            PROCESSES,
+            processes,
             hec_url=hec_url,
             hec_token=hec_token
         )

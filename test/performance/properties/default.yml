@@ -10,10 +10,15 @@ _parent:
 _roles:
     docker_plugin:
         _host_count: 1
-        _hosts: [ec2-35-172-178-120.compute-1.amazonaws.com]
-        provision_new_hosts: False
+        provision_new_hosts: True
         _types:
             docker_node:
                 _module: workers
                 _class: DockerPluginTest
                 _workers: 1
+
+            process_monitor:
+                _module: workers
+                _class: MonitorPlugin
+                _workers: 1
+                processes: ["splunk-logging-plugin", "dockerd"]
