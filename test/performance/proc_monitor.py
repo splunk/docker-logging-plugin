@@ -34,13 +34,6 @@ class ProcMonitor(object):
         except Exception:
             logging.exception('failed to collect metrics')
 
-        # while not self._done:
-        #     try:
-        #         self._do_run()
-        #     except Exception:
-        #         logging.exception('failed to collect metrics')
-        #         time.sleep(1)
-
     def _do_run(self):
         platform_info = self._stats.get_platform_info()
 
