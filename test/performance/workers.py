@@ -1,9 +1,7 @@
-import os
 
 import bridge
 import proc_monitor
 
-from splunkconductor.control import test_wrapper
 
 DEFAULT_WORKING_DIR = '/mnt/ephemeral0/test'
 PLUGIN_NAME = 'splunk/docker-logging-plugin:latest'
@@ -19,14 +17,10 @@ GZIP="false"
 FORMAT="inline"
 GZIP_LEVEL=-1
 
-@test_wrapper()
-def get_working_dir(ctrl):
-    return ctrl.properties['_linux_path']
-
 
 class DockerPluginTest(object):
 
-    def deploy_and_enable_plugin(self, control_logger):
+    def deploy_and_enable_plugin(self, working_dir, control_logger):
         """
             Installs the docker plugin on the node
         :param control_logger:
@@ -34,7 +28,7 @@ class DockerPluginTest(object):
         """
         command = ["echo", "eserv", "|", "sudo", "-S", "sh", "deploy_and_enable_plugin.sh"]
         br = bridge.Bridge(control_logger)
-        br.execute_single_command(command, working_dir=get_working_dir())
+        br.execute_single_command(command, working_dir=working_dir)
 
     def run_throughput_test(
             self,
