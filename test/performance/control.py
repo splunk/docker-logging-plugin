@@ -58,8 +58,16 @@ def sizing_guide_test(ctrl):
     """
 
     # Deploy docker node
-    ctrl.roles['docker_plugin'].dispatch('deploy_and_enable_plugin',
-                                         block_on_complete=True)
+    cwd = ctrl.properties['_linux_path']
+    kwargs = {
+        'working_dir': cwd
+    }
+
+    ctrl.roles['docker_plugin'].dispatch(
+        'deploy_and_enable_plugin',
+        kwargs=kwargs,
+        block_on_complete=True
+    )
 
     ctrl.logger.info("Done with plugin deployment. "
                      "Docker service is up and plugin enabled!")
