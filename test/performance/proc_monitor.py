@@ -38,31 +38,27 @@ class ProcMonitor(object):
         platform_info = self._stats.get_platform_info()
 
         events = []
-        while not self._done:
-            if 'system' in self._metrics:
-                sys_metrics = self._stats.collect_system_stats()
-                events.extend(
-                    self._normalize_metrics(platform_info, sys_metrics))
+        if 'system' in self._metrics:
+            sys_metrics = self._stats.collect_system_stats()
+            events.extend(
+                self._normalize_metrics(platform_info, sys_metrics))
 
-            if 'topn_process' in self._metrics:
-                topn_process_metrics = self._stats.collect_topn_process_stats(
-                    self._metrics['topn_process'])
-                events.extend(
-                    self._normalize_metrics(
-                        platform_info, topn_process_metrics))
+        if 'topn_process' in self._metrics:
+            topn_process_metrics = self._stats.collect_topn_process_stats(
+                self._metrics['topn_process'])
+            events.extend(
+                self._normalize_metrics(
+                    platform_info, topn_process_metrics))
 
-            if 'processes' in self._metrics:
-                process_metrics = self._stats.collect_process_stats(
-                    self._metrics['processes'])
-                events.extend(self._normalize_metrics(
-                    platform_info, process_metrics))
+        if 'processes' in self._metrics:
+            process_metrics = self._stats.collect_process_stats(
+                self._metrics['processes'])
+            events.extend(self._normalize_metrics(
+                platform_info, process_metrics))
 
-            self._sink.write(events)
-            del events[:]
-            time.sleep(self._interval)
-
-    def stop(self):
-        self._done = True
+        self._sink.write(events)
+        del events[:]
+        time.sleep(self._interval)
 
 
 def monitor_proc(config):
@@ -99,7 +95,12 @@ def monitor_proc(config):
 
     sink = splunk_hec.HECWriter(config['hec_url'], config['hec_token'])
     monitor = ProcMonitor(
-        pytop, sink, config['interval'], config['metrics'], normalize_metrics)
+        pytop,
+        sink,
+        config['interval'],
+        config['metrics'],
+        normalize_metrics
+    )
     monitor.run()
 
 

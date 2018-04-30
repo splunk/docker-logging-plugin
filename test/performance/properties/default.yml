@@ -9,7 +9,7 @@ _parent:
 
 # Upload file to conductor agent machine
 _files: [deploy_and_enable_plugin.sh]
-orca:
+ec2:
     # Instance info
     tags:
         Name: docker_plugin_test
