@@ -199,3 +199,36 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+   
+=======================================================================
+Splunk Connect for Docker Subcomponents:
+
+The Splunk Connect for Docker project contains subcomponents with separate copyright
+notices and license terms. Your use of the source code for the these
+subcomponents is subject to the terms and conditions of the following
+licenses.
+
+========================================================================
+Apache License 2.0
+========================================================================
+The following components are provided under the Apache License 2.0. See project link for details.
+
+    (Apache License 2.0) logger, ioutils, urlutils, logdriver (https://github.com/moby/moby/blob/master/LICENSE)
+    (Apache License 2.0) fifo (https://github.com/containerd/fifo/blob/master/LICENSE)
+    (Apache License 2.0) go-plugin-helpers (https://github.com/docker/go-plugins-helpers/blob/master/LICENSE)
+
+========================================================================
+MIT licenses
+========================================================================
+The following components are provided under the MIT License. See project link for details.
+
+    (MIT License) logrus (https://github.com/sirupsen/logrus/blob/master/LICENSE)
+
+========================================================================
+BSD-style licenses
+========================================================================
+
+The following components are provided under a BSD-style license. See project link for details.
+
+    (BSD 2-Clause "Simplified" License) errors (https://github.com/pkg/errors/blob/master/LICENSE)
+    (BSD 3-Clause) protobuf/io (https://github.com/gogo/protobuf/blob/master/LICENSE)
