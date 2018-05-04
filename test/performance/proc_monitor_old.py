@@ -1,6 +1,5 @@
 import time
 import logging
-import os
 
 COLLECTION_INTERVAL = 2
 HEC_URL = 'https://ec2-34-234-70-228.compute-1.amazonaws.com:8088'
@@ -116,19 +115,6 @@ def collect_process_data(
         'metrics': {
             'system': True,
             'processes': processes,
-        }
-    }
-
-    monitor_proc(config)
-
-if __name__ == '__main__':
-    config = {
-        'hec_url': os.environ.get('SPLUNK_HOST', 'https://localhost:8088'),
-        'hec_token': os.environ.get('SPLUNK_TOKEN', '00000000-0000-0000-0000-000000000000'),
-        'interval': 2,
-        'metrics': {
-            'system': True,
-            'processes': os.environ.get('TARGETS', 'splunk-firehose-nozzle').split(','),
         }
     }
 

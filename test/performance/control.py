@@ -3,10 +3,7 @@ Control logic for docker plugin perf tests
 """
 
 # Import control logic for installing splunk
-import splunkconductor.control
-
-# Import a wrapper that issues some extra jobs at the end of a test even if it fails, ex. generate splunk diags
-from splunkconductor.control import test_wrapper
+import functools
 
 import perftestshared.control
 
@@ -14,20 +11,21 @@ import perftestshared.control
 def _start_monitoring(ctrl, hec_url):
     # start monitoring plugin memory and cpu usage
     ctrl.logger.custom('Starting monitoring on docker node!')
-    hec_token = ctrl.properties['hec_token']
-    run_interval = ctrl.properties['monitor_run_interval']
+    #hec_token = ctrl.properties['hec_token']
 
     role = ctrl.roles['docker_plugin']
-    test_type = role.types['process_monitor']
-    processes = test_type.properties['processes']
+    role_type = role.types['process_monitor']
+
+    processes = role_type.properties['monit_processes']
+    run_interval = role_type.properties['monitor_run_interval']
+
 
     kwargs_mon = {
-        'hec_url': hec_url,
-        'hec_token': hec_token,
         'processes': processes
     }
-    monit_job = ctrl.roles['docker_plugin'].dispatch(
-        'monitor_process',
+    # Run the monitoring method
+    monit_job = role.dispatch(
+        'monitor_processes',
         kwargs=kwargs_mon,
         max_runs=0,
         min_run_interval=run_interval,
@@ -36,48 +34,75 @@ def _start_monitoring(ctrl, hec_url):
         )
 
     ctrl.logger.custom('Monitoring started on docker node!')
-    ctrl.logger.custom('Collecting metrics for processes: %s' % '#'.join(processes))
+    ctrl.logger.custom('Collecting metrics for processes: %s' % ' ### '.join(processes))
 
     return monit_job
 
 
 def _runtest(ctrl, kwargs):
     # Run test
+    ctrl.logger.custom('Running test')
     ctrl.roles['docker_plugin'].dispatch(
         'run_sizing_guide_test',
         kwargs=kwargs,
         block_on_complete=False
     )
 
+    ctrl.logger.custom('Test completed')
 
-@test_wrapper()
+
+def setup_environment():
+    """Function decorator variant of _test_wrapper.
+    """
+    def decorated(func):
+        def wrapper(*args, **kwargs):
+            ctrl = args[0]
+            perftestshared.control.install_splunk(ctrl)
+            ctrl.logger.custom('Inside docker_deploy wrapper')
+            cwd = ctrl.properties['_linux_path']
+            deploy_args = {
+                'working_dir': cwd
+            }
+
+            ctrl.roles['docker_plugin'].dispatch(
+                'deploy_and_enable_plugin',
+                kwargs=deploy_args,
+                block_on_complete=True
+            )
+
+            ctrl.logger.info("Docker service is up and plugin enabled!")
+
+            error = False
+            try:
+                ctrl.logger.custom('Now calling the function itself')
+                func(*args, **kwargs)
+            except Exception as e:
+                error = True
+                raise
+            finally:
+
+                if error:
+                    ctrl.logger.error('There was an error running the test from the wrapper.')
+
+                else:
+                    ctrl.logger.custom('Running end-of-test jobs (if any) while agents are still online')
+        return functools.wraps(func)(wrapper)
+    return decorated
+
+
+@setup_environment()
 def sizing_guide_test(ctrl):
     """
         Entry point for sizing guide test: run configurable events count
         on configurable number of containers
     """
 
-    # Deploy docker node
-    cwd = ctrl.properties['_linux_path']
-    kwargs = {
-        'working_dir': cwd
-    }
-
-    ctrl.roles['docker_plugin'].dispatch(
-        'deploy_and_enable_plugin',
-        kwargs=kwargs,
-        block_on_complete=True
-    )
-
-    ctrl.logger.info("Done with plugin deployment. "
-                     "Docker service is up and plugin enabled!")
-
-    # Install splunk
-    hec_urls = perftestshared.control.install_splunk(ctrl)
-    ctrl.logger.custom('Hec URLS: %s' ''.join(hec_urls))
+    ctrl.logger.custom('Getting test scenarios to run')
 
     params = ctrl.properties['test_params']
     scenarios = [params['scenario_one'], params['scenario_two']]
+    hec_urls = perftestshared.control.get_hec_urls(ctrl)
+
     # Loop through all test scenarios
     for scenario in scenarios:
         # Get test parameters for the scenario
@@ -86,7 +111,7 @@ def sizing_guide_test(ctrl):
         # Start monitoring
         monit = _start_monitoring(ctrl, hec_urls[0])
         kwargs_test = {
-            'hec_url': hec_urls[0], # TODO: sent ELB if available
+            'hec_url': hec_urls[0], # TODO: send ELB if available
             'hec_token': ctrl.properties['hec_token'],
             'hec_source': ctrl.properties['hec_source'],
             'hec_sourcetype': ctrl.properties['source_type'],
@@ -102,6 +127,9 @@ def sizing_guide_test(ctrl):
 
     # Cleanup and end test
     ctrl.end_test()
+
+
+
 
 
 
