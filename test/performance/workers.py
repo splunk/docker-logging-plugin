@@ -3,6 +3,7 @@ import bridge
 from perftestshared.utilities import proc_monitor
 
 
+DEFAULT_WORKING_DIR = '/mnt/ephemeral0/test'
 PLUGIN_NAME = 'splunk/docker-logging-plugin:latest'
 PLUGIN_DIR = 'docker-logging-plugin'
 BRANCH = 'develop'

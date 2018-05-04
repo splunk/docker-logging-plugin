@@ -6,6 +6,7 @@ Control logic for docker plugin perf tests
 import functools
 
 import perftestshared.control
+from perftestshared.control import splunk_install
 
 
 def _start_monitoring(ctrl, hec_url):
@@ -57,7 +58,6 @@ def setup_environment():
     def decorated(func):
         def wrapper(*args, **kwargs):
             ctrl = args[0]
-            perftestshared.control.install_splunk(ctrl)
             ctrl.logger.custom('Inside docker_deploy wrapper')
             cwd = ctrl.properties['_linux_path']
             deploy_args = {
@@ -74,7 +74,6 @@ def setup_environment():
 
             error = False
             try:
-                ctrl.logger.custom('Now calling the function itself')
                 func(*args, **kwargs)
             except Exception as e:
                 error = True
@@ -82,7 +81,7 @@ def setup_environment():
             finally:
 
                 if error:
-                    ctrl.logger.error('There was an error running the test from the wrapper.')
+                    ctrl.logger.error('There was an error calling test from the test wrapper.')
 
                 else:
                     ctrl.logger.custom('Running end-of-test jobs (if any) while agents are still online')
@@ -91,6 +90,7 @@ def setup_environment():
 
 
 @setup_environment()
+@splunk_install()
 def sizing_guide_test(ctrl):
     """
         Entry point for sizing guide test: run configurable events count
