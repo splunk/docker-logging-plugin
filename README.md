@@ -153,6 +153,7 @@ env-regex | A regular expression to match logging-related environment variables.
 
 ### Advanced options - Environment Variables
 
+To overwrite these values through environment variables, use docker plugin set <env>=<value>. For more information, see https://docs.docker.com/engine/reference/commandline/plugin_set/ .
 
 Variable | Description | Default
 ------------ | ------------- | -------------
