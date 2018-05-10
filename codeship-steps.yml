@@ -2,7 +2,7 @@
   service: test
   command: bash ./codeship/compile.sh
 - name: testing
-  type: serial
+  type: parallel
   steps:
     - name: unit tests
       service: test
@@ -10,3 +10,4 @@
     - name: integration tests
       service: test
       command: bash ./codeship/integration_tests.sh
+
