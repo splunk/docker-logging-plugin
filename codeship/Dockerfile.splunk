@@ -76,7 +76,7 @@ COPY ./splunk/inputs.conf ./etc/apps/splunk_httpinput/local/inputs.conf
 RUN mkdir -p ./etc/system/local
 COPY ./splunk/server.conf /opt/splunk/etc/system/local/server.conf
 
-HEALTHCHECK --interval=10s --timeout=120s --start-period=20s --retries=10 \
+HEALTHCHECK --interval=10s --timeout=60s --start-period=20s --retries=10 \
   CMD curl -ksSL "https://localhost:8088/services/collector/health" || exit 1
 
 ENTRYPOINT ["./bin/splunk"]
