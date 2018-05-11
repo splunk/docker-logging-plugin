@@ -20,6 +20,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
+	"os"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -30,6 +32,7 @@ import (
 )
 
 type messageProcessor struct {
+	retryNumber int
 }
 
 func (mg messageProcessor) process(lf *logPair) {
@@ -49,21 +52,32 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 	// create a protobuf reader for the log stream
 	dec := protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 	defer dec.Close()
+	defer lf.Close()
 	// a temp buffer for each log entry
 	var buf logdriver.LogEntry
+	curRetryNumber := 0
 	for {
-		// reads a message from the log stream and put it in a buffer until the EOF
-		// if there is any other error, recreate the stream reader
+		// reads a message from the log stream and put it in a buffer
 		if err := dec.ReadMsg(&buf); err != nil {
-			if err == io.EOF {
-				logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("shutting down log logger")
-				lf.stream.Close()
+			// exit the loop if reader reaches EOF or the fifo is closed by the writer
+			if err == io.EOF || err == os.ErrClosed || strings.Contains(err.Error(), "file already closed") {
+				logrus.WithField("id", lf.info.ContainerID).WithError(err).Info("shutting down loggers")
 				return
 			}
 
-			logrus.WithField("id", lf.info.ContainerID).WithError(err).Debug("Ignoring error")
+			// exit the loop if retry number reaches the specified number
+			if mg.retryNumber != -1 && curRetryNumber > mg.retryNumber {
+				logrus.WithField("id", lf.info.ContainerID).WithField("curRetryNumber", curRetryNumber).WithField("retryNumber", mg.retryNumber).WithError(err).Error("Stop retrying. Shutting down loggers")
+				return
+			}
+
+			// if there is any other error, retry for robustness. If retryNumber is -1, retry forever
+			curRetryNumber++
+			logrus.WithField("id", lf.info.ContainerID).WithField("curRetryNumber", curRetryNumber).WithField("retryNumber", mg.retryNumber).WithError(err).Error("Encountered error and retrying")
+			time.Sleep(500 * time.Millisecond)
 			dec = protoio.NewUint32DelimitedReader(lf.stream, binary.BigEndian, 1e6)
 		}
+		curRetryNumber = 0
 
 		if mg.shouldSendMessage(buf.Line) {
 			// Append to temp buffer
@@ -85,8 +99,6 @@ func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry,
 	// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
 	// Check for temp buffer timer expiration
 	if !buf.Partial || t.shouldFlush(time.Now()) {
-		logrus.WithField("id", containerid).WithField("Buffer partial flag should be false:",
-			buf.Partial).WithField("Temp buffer Length:", t.tBuf.Len()).Debug("Buffer details")
 		msg.Line = t.tBuf.Bytes()
 		msg.Source = buf.Source
 		msg.Partial = buf.Partial

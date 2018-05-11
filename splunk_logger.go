@@ -72,6 +72,9 @@ const (
 	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
 	// Maximum buffer size for partial logging
 	defaultPartialMsgBufferMaximum = 1024 * 1024
+	// Number of retry if error happens while reading logs from docker provided fifo
+	// -1 means retry forever
+	defaultReadFifoErrorRetryNumber = 3
 )
 
 const (
@@ -81,6 +84,7 @@ const (
 	envVarStreamChannelSize            = "SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE"
 	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION"
 	envVarPartialMsgBufferMaximum      = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE"
+	envVarReadFifoErrorRetryNumber     = "SPLUNK_LOGGING_DRIVER_FIFO_ERROR_RETRY_TIME"
 )
 
 type splunkLoggerInterface interface {
