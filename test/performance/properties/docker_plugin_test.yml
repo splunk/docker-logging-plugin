@@ -1,0 +1,58 @@
+###############################################
+###  Docker plugin perf test conductor defaults
+###############################################
+
+# Parent YAML files that define default properties for other tests
+_parent:
+    - findpath(perftestshared)/default.yml
+
+ec2:
+    # Instance info
+    tags:
+        Name: docker_plugin_test
+
+splunk_version: any
+splunk_sha: 42691b38bc3e
+
+# Tests properties
+test_name: sizing_guide_test
+_test:
+    _module: control
+    _function: sizing_guide_test
+
+# Test environment setup file. To be ran by conductor agent.
+#_files: [deploy_and_enable_plugin.sh]
+
+# Tests and test parameters
+test_params:
+    scenario_one:
+        container_count: 1
+        message_count: 10000000
+
+    scenario_two:
+        container_count: 5
+        message_count: 10000000
+
+# Splunk instance configuration
+search_heads: 1
+indexers: 3
+masters: 1
+
+# Roles to group hosts together
+_roles:
+    docker_plugin:
+        _host_count: 1
+        provision_new_hosts: True
+        _files: [deploy_and_enable_plugin.sh]
+        _types:
+            docker_node:
+                _module: workers
+                _class: DockerPluginTest
+                _workers: 1
+
+            process_monitor:
+                _module: workers
+                _class: MonitorPlugin
+                _workers: 1
+                monitor_run_interval: 3
+                monit_processes: ["splunk-logging-plugin", "dockerd"]
