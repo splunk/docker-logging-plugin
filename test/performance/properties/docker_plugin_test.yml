@@ -4,7 +4,7 @@
 
 # Parent YAML files that define default properties for other tests
 _parent:
-    - findpath(perftestshared)/default.yml
+    - findpath(daperfcommon)/default.yml
 
 ec2:
     # Instance info
@@ -27,15 +27,15 @@ _test:
 test_params:
     scenario_one:
         container_count: 1
-        message_count: 10000000
+        message_count: 1000000
 
     scenario_two:
         container_count: 5
-        message_count: 10000000
+        message_count: 1000000
 
 # Splunk instance configuration
 search_heads: 1
-indexers: 3
+indexers: 1
 masters: 1
 
 # Roles to group hosts together

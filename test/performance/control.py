@@ -5,8 +5,8 @@ Control logic for docker plugin perf tests
 # Import control logic for installing splunk
 import functools
 
-import perftestshared.control
-from perftestshared.control import splunk_install
+import daperfcommon.control
+from daperfcommon.control import splunk_install
 
 
 def _start_monitoring(ctrl, hec_url):
@@ -46,7 +46,8 @@ def _runtest(ctrl, kwargs):
     ctrl.roles['docker_plugin'].dispatch(
         'run_sizing_guide_test',
         kwargs=kwargs,
-        block_on_complete=False
+        block_on_complete=True,
+        block_timeout=3600
     )
 
     ctrl.logger.custom('Test completed')
@@ -76,8 +77,10 @@ def setup_environment():
             try:
                 func(*args, **kwargs)
             except Exception as e:
-                error = True
-                raise
+                pass
+                # todo: Handle known error and do not raise
+                # error = True
+                # raise
             finally:
 
                 if error:
@@ -101,7 +104,7 @@ def sizing_guide_test(ctrl):
 
     params = ctrl.properties['test_params']
     scenarios = [params['scenario_one'], params['scenario_two']]
-    hec_urls = perftestshared.control.get_hec_urls(ctrl)
+    hec_urls = daperfcommon.control.get_hec_urls(ctrl)
 
     # Loop through all test scenarios
     for scenario in scenarios:
@@ -115,6 +118,7 @@ def sizing_guide_test(ctrl):
             'hec_token': ctrl.properties['hec_token'],
             'hec_source': ctrl.properties['hec_source'],
             'hec_sourcetype': ctrl.properties['source_type'],
+            'control_logger': ctrl.logger,
             'message_count': msg_cnt,
             'container_count': container_cnt
         }
