@@ -28,13 +28,7 @@ class DockerPluginTest(object):
         """
         command = ["echo", "eserv", "|", "sudo", "-S", "sh", "deploy_and_enable_plugin.sh"]
         br = bridge.Bridge(control_logger)
-        out, err = br.execute_single_command(command, working_dir=working_dir)
-        if not err:
-            control_logger.info('deploy_and_enable_plugin output')
-        else:
-            control_logger.info('deploy_and_enable_plugin error')
-            control_logger.info(err)
-        return out
+        br.execute_single_command(command, working_dir=working_dir)
 
     def _start_test(
             self,
@@ -94,6 +88,7 @@ class DockerPluginTest(object):
             "eserv",
             "|",
             "sudo",
+            "-S",
             "docker",
             "ps",
             "|",

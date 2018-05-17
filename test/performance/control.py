@@ -30,7 +30,6 @@ def _start_monitoring(ctrl, hec_url):
         kwargs=kwargs_mon,
         max_runs=0,
         min_run_interval=run_interval,
-        per_run_timeout=120,
         block_on_complete=False
         )
 
@@ -47,7 +46,7 @@ def _runtest(ctrl, kwargs):
         'run_sizing_guide_test',
         kwargs=kwargs,
         block_on_complete=True,
-        block_timeout=3600
+        block_timeout=600
     )
 
     ctrl.logger.custom('Test completed')
@@ -92,14 +91,37 @@ def setup_environment():
     return decorated
 
 
-@setup_environment()
+def setup_environment_2(ctrl):
+    """Function decorator variant of _test_wrapper.
+    """
+    ctrl.logger.custom('Inside docker_deploy wrapper')
+    cwd = ctrl.properties['_linux_path']
+    deploy_args = {
+        'working_dir': cwd
+    }
+
+    ctrl.roles['docker_plugin'].dispatch(
+        'deploy_and_enable_plugin',
+        kwargs=deploy_args,
+        block_on_complete=True
+    )
+
+    ctrl.logger.info("Docker service is up and plugin enabled!")
+
+    # if err:
+    #     ctrl.logger.cusom('There was an error calling deploy_and_enable_plugin.')
+    # else:
+    #     ctrl.logger.custom('Running end-of-test jobs (if any) while agents are still online')
+
+
+# @setup_environment()
 @splunk_install()
 def sizing_guide_test(ctrl):
     """
         Entry point for sizing guide test: run configurable events count
         on configurable number of containers
     """
-
+    setup_environment_2(ctrl)
     ctrl.logger.custom('Getting test scenarios to run')
 
     params = ctrl.properties['test_params']
@@ -118,7 +140,6 @@ def sizing_guide_test(ctrl):
             'hec_token': ctrl.properties['hec_token'],
             'hec_source': ctrl.properties['hec_source'],
             'hec_sourcetype': ctrl.properties['source_type'],
-            'control_logger': ctrl.logger,
             'message_count': msg_cnt,
             'container_count': container_cnt
         }
