@@ -69,7 +69,7 @@ const (
 	// Number of messages allowed to be queued in the channel
 	defaultStreamChannelSize = 4 * defaultPostMessagesBatchSize
 	// Partial log hold duration (if we are not reaching max buffer size)
-	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
+	defaultPartialMsgBufferHoldDuration = 5 * time.Second
 	// Maximum buffer size for partial logging
 	defaultPartialMsgBufferMaximum = 1024 * 1024
 	// Number of retry if error happens while reading logs from docker provided fifo

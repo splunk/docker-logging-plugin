@@ -80,6 +80,10 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		curRetryNumber = 0
 
 		if mg.shouldSendMessage(buf.Line) {
+			if tmpBuf.tBuf.Len() == 0 {
+				logrus.Debug("First messaging, reseting timer")
+				tmpBuf.bufferTimer = time.Now()
+			}
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and json logger
