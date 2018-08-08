@@ -52,15 +52,19 @@ func (b *partialMsgBuffer) reset() {
 	if b.bufferReset {
 		b.tBuf.Reset()
 		b.bufferTimer = time.Now()
+		logrus.WithField("resetBufferTimer", b.bufferTimer).Debug("resetting buffer Timer")
 	}
 }
 
 func (b *partialMsgBuffer) hasHoldDurationExpired(t time.Time) bool {
 	diff := t.Sub(b.bufferTimer)
+	logrus.WithField("currentTime", t).WithField("bufferTime", b.bufferTimer).WithField("diff", diff).Debug("Timeout settings")
+	logrus.WithField("partialMsgBufferHoldDuration", partialMsgBufferHoldDuration).WithField("hasHoldDurationExpired", diff > partialMsgBufferHoldDuration).Debug("check timeout")
 	return diff > partialMsgBufferHoldDuration
 }
 
 func (b *partialMsgBuffer) hasLengthExceeded() bool {
+	logrus.WithField("buffer size limit exceeded", partialMsgBufferMaximum < b.tBuf.Len()).Debug("check size")
 	return partialMsgBufferMaximum < b.tBuf.Len()
 }
 

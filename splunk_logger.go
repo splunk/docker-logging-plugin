@@ -69,7 +69,7 @@ const (
 	// Number of messages allowed to be queued in the channel
 	defaultStreamChannelSize = 4 * defaultPostMessagesBatchSize
 	// Partial log hold duration (if we are not reaching max buffer size)
-	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
+	defaultPartialMsgBufferHoldDuration = 5 * time.Second
 	// Maximum buffer size for partial logging
 	defaultPartialMsgBufferMaximum = 1024 * 1024
 	// Number of retry if error happens while reading logs from docker provided fifo
@@ -413,10 +413,12 @@ func composeHealthCheckURL(splunkURL *url.URL) string {
 
 func getAdvancedOptionDuration(envName string, defaultValue time.Duration) time.Duration {
 	valueStr := os.Getenv(envName)
+	logrus.WithField("defaultValue", defaultValue).WithField("valueStr", valueStr).Debug("default timer")
 	if valueStr == "" {
 		return defaultValue
 	}
 	parsedValue, err := time.ParseDuration(valueStr)
+	logrus.WithField("parsedValue", parsedValue).Debug("parse env")
 	if err != nil {
 		logrus.Error(fmt.Sprintf("Failed to parse value of %s as duration. Using default %v. %v", envName, defaultValue, err))
 		return defaultValue

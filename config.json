@@ -13,7 +13,7 @@
 		{
 			"name": "LOG_LEVEL",
 			"description": "Set log level to output for plugin logs",
-			"value": "info",
+			"value": "debug",
 			"settable": ["value"]
 		},
 		{
@@ -49,7 +49,7 @@
 		{
 			"name": "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION",
 			"description": "Used when logs that are chunked by docker with 16kb limit. Set how long the system can wait for the next message to come.",
-			"value": "100ms",
+			"value": "5s",
 			"settable": ["value"]
 		},
 		{

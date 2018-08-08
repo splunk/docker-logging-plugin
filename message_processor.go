@@ -84,7 +84,7 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and json logger
 				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
-				mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				// mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
 				//temp buffer and values reset
 				tmpBuf.reset()
 			}
@@ -98,7 +98,9 @@ func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry,
 	var msg logger.Message
 	// Only send if partial bit is not set or temp buffer size reached max or temp buffer timer expired
 	// Check for temp buffer timer expiration
+	logrus.WithField("Partial", buf.Partial).Debug("this should be True for the first chunk")
 	if !buf.Partial || t.shouldFlush(time.Now()) {
+		logrus.Debug("Is Partial is True, it means timed out")
 		msg.Line = t.tBuf.Bytes()
 		msg.Source = buf.Source
 		msg.Partial = buf.Partial
