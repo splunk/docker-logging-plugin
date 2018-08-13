@@ -80,6 +80,10 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		curRetryNumber = 0
 
 		if mg.shouldSendMessage(buf.Line) {
+			if tmpBuf.tBuf.Len() == 0 {
+				logrus.Debug("First messaging, reseting timer")
+				tmpBuf.bufferTimer = time.Now()
+			}
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and json logger
@@ -100,7 +104,7 @@ func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry,
 	// Check for temp buffer timer expiration
 	logrus.WithField("Partial", buf.Partial).Debug("this should be True for the first chunk")
 	if !buf.Partial || t.shouldFlush(time.Now()) {
-		logrus.Debug("Is Partial is True, it means timed out")
+		logrus.Debug("If Partial is True, it means timed out")
 		msg.Line = t.tBuf.Bytes()
 		msg.Source = buf.Source
 		msg.Partial = buf.Partial
