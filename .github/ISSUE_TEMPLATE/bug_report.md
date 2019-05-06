@@ -22,7 +22,7 @@ Please do not report security vulnerabilities with public GitHub issue reports. 
 **Anything else we need to know?**:
 
 **Environment**:
-- Kubernetes version (use `docker version`):
+- Docker version (use `docker version`):
 - OS (e.g: `cat /etc/os-release`):
 - Splunk version:
 - Others:
