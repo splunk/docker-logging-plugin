@@ -495,8 +495,8 @@ Do a HEC POST when
 */
 func (l *splunkLogger) worker() {
 	var messages []*splunkMessage
+	timer := time.NewTicker(l.hec.postMessagesFrequency)
 	for {
-		timer := time.NewTicker(l.hec.postMessagesFrequency)
 		select {
 		case message, open := <-l.stream:
 			// if the stream channel is closed, post the remaining messages in the buffer
