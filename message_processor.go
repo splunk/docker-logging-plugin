@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -30,6 +31,8 @@ import (
 	"github.com/docker/docker/daemon/logger"
 	protoio "github.com/gogo/protobuf/io"
 )
+
+const envVarJSONLogs = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
 
 type messageProcessor struct {
 	retryNumber int
@@ -45,6 +48,12 @@ This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
 func (mg messageProcessor) consumeLog(lf *logPair) {
+	// Check env variable for json logs
+	jsonLogs, err := strconv.ParseBool(os.Getenv(envVarJSONLogs))
+	if err != nil {
+		logrus.WithField("jsonLogs", jsonLogs).WithError(err)
+	}
+
 	// Initialize temp buffer
 	tmpBuf := &partialMsgBuffer{
 		bufferTimer: time.Now(),
@@ -86,9 +95,11 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 			}
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
-				// Send message to splunk and json logger
+				// Send message to splunk and also json logger if enabled
 				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
-				mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				if jsonLogs {
+					mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				}
 				//temp buffer and values reset
 				tmpBuf.reset()
 			}
