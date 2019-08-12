@@ -447,7 +447,7 @@ func getAdvancedOptionBool(envName string, defaultValue bool) bool {
 	}
 	parsedValue, err := strconv.ParseBool(valueStr)
 	if err != nil {
-		logrus.Error(fmt.Sprintf("Failed to parse value of %s as integer. Using default %v. %v", envName, defaultValue, err))
+		logrus.Error(fmt.Sprintf("Failed to parse value of %s as boolean. Using default %v. %v", envName, defaultValue, err))
 		return defaultValue
 	}
 	return bool(parsedValue)
