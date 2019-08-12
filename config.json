@@ -57,6 +57,12 @@
 			"description": "Used when logs that are chunked by docker with 16kb limit. Set the biggest message that the system can reassemble.",
 			"value": "1048576",
 			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_JSON_LOGS",
+			"description": "Determines if JSON logging is enabled.",
+			"value": "true",
+			"settable": ["value"]
 		}
 	]
 }

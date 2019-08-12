@@ -31,6 +31,10 @@ import (
 	protoio "github.com/gogo/protobuf/io"
 )
 
+var (
+	jsonLogs = getAdvancedOptionBool(envVarJSONLogs, defaultJSONLogs)
+)
+
 type messageProcessor struct {
 	retryNumber int
 }
@@ -86,9 +90,11 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 			}
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
-				// Send message to splunk and json logger
+				// Send message to splunk and also json logger if enabled
 				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
-				mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				if jsonLogs {
+					mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				}
 				//temp buffer and values reset
 				tmpBuf.reset()
 			}
