@@ -21,7 +21,6 @@ import (
 	"encoding/binary"
 	"io"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -32,7 +31,9 @@ import (
 	protoio "github.com/gogo/protobuf/io"
 )
 
-const envVarJSONLogs = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
+var (
+	jsonLogs = getAdvancedOptionBool(envVarJSONLogs, defaultJSONLogs)
+)
 
 type messageProcessor struct {
 	retryNumber int
@@ -48,12 +49,6 @@ This is a routine to decode the log stream into LogEntry and store it in buffer
 and send the buffer to splunk logger and json logger
 */
 func (mg messageProcessor) consumeLog(lf *logPair) {
-	// Check env variable for json logs
-	jsonLogs, err := strconv.ParseBool(os.Getenv(envVarJSONLogs))
-	if err != nil {
-		logrus.WithField("jsonLogs", jsonLogs).WithError(err)
-	}
-
 	// Initialize temp buffer
 	tmpBuf := &partialMsgBuffer{
 		bufferTimer: time.Now(),

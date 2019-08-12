@@ -75,6 +75,8 @@ const (
 	// Number of retry if error happens while reading logs from docker provided fifo
 	// -1 means retry forever
 	defaultReadFifoErrorRetryNumber = 3
+	// Determines if JSON logging is enabled
+	defaultJSONLogs = true
 )
 
 const (
@@ -85,6 +87,7 @@ const (
 	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION"
 	envVarPartialMsgBufferMaximum      = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE"
 	envVarReadFifoErrorRetryNumber     = "SPLUNK_LOGGING_DRIVER_FIFO_ERROR_RETRY_TIME"
+	envVarJSONLogs                     = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
 )
 
 type splunkLoggerInterface interface {
@@ -435,6 +438,19 @@ func getAdvancedOptionInt(envName string, defaultValue int) int {
 		return defaultValue
 	}
 	return int(parsedValue)
+}
+
+func getAdvancedOptionBool(envName string, defaultValue bool) bool {
+	valueStr := os.Getenv(envName)
+	if valueStr == "" {
+		return defaultValue
+	}
+	parsedValue, err := strconv.ParseBool(valueStr)
+	if err != nil {
+		logrus.Error(fmt.Sprintf("Failed to parse value of %s as integer. Using default %v. %v", envName, defaultValue, err))
+		return defaultValue
+	}
+	return bool(parsedValue)
 }
 
 // Log() takes in a log message reference and put it into a queue: stream
