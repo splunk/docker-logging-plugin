@@ -225,8 +225,22 @@ func New(info logger.Info) (logger.Logger, error) {
 		Transport: transport,
 	}
 
-	source := info.Config[splunkSourceKey]
-	sourceType := info.Config[splunkSourceTypeKey]
+	source := ""
+	if tagTemplateSource, ok := info.Config[splunkSourceKey]; !ok || tagTemplateSource != "" {
+		source, err = ParseLogTagSource(info, loggerutils.DefaultTemplate, splunkSourceKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	sourceType := ""
+	if tagTemplateSource, ok := info.Config[splunkSourceTypeKey]; !ok || tagTemplateSource != "" {
+		sourceType, err = ParseLogTagSource(info, loggerutils.DefaultTemplate, splunkSourceTypeKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	index := info.Config[splunkIndexKey]
 
 	var nullMessage = &splunkMessage{
@@ -561,4 +575,22 @@ func (l *splunkLogger) createSplunkMessage(msg *logger.Message) *splunkMessage {
 	message := *l.nullMessage
 	message.Time = fmt.Sprintf("%f", float64(msg.Timestamp.UnixNano())/float64(time.Second))
 	return &message
+}
+
+func ParseLogTagSource(info logger.Info, defaultTemplate string, splunkField string) (string, error) {
+	tagTemplate := info.Config[splunkField]
+	if tagTemplate == "" {
+		tagTemplate = defaultTemplate
+	}
+
+	tmpl, err := NewParse("log-tag", tagTemplate)
+	if err != nil {
+		return "", err
+	}
+	buf := new(bytes.Buffer)
+	if err := tmpl.Execute(buf, &info); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
