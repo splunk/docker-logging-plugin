@@ -199,7 +199,7 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-   
+
 =======================================================================
 Splunk Connect for Docker Subcomponents:
 
@@ -232,3 +232,11 @@ The following components are provided under a BSD-style license. See project lin
 
     (BSD 2-Clause "Simplified" License) errors (https://github.com/pkg/errors/blob/master/LICENSE)
     (BSD 3-Clause) protobuf/io (https://github.com/gogo/protobuf/blob/master/LICENSE)
+
+========================================================================
+Mozilla Public License 2.0
+========================================================================
+
+The following components are provided under a Mozilla public license. See project link for details.
+
+    (Mozilla Public License 2.0) templates.go (https://github.com/keel-hq/keel/blob/master/LICENSE)
