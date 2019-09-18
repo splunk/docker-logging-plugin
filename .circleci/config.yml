@@ -8,5 +8,12 @@ jobs:
     steps:
       - checkout
       - run:
-          name: "Testing"
-          command: echo "Hi"
+          name: Builder
+          command: |
+            .circleci/compile.sh
+
+      - run:
+          name: Run unit tests
+          command: |
+            .circleci/unit_tests.sh
+
