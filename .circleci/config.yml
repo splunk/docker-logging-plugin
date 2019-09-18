@@ -1,8 +1,7 @@
 version: 2.1
 jobs:
   build:
-    machine:
-       - image: circleci/classic:latest
+    machine: true
 
     working_directory: ~/repo
 
