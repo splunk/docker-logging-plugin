@@ -1,0 +1,49 @@
+version: 2
+jobs:
+  build:
+    docker:
+       - image: circleci/ruby:2.4.1-node-browsers
+       - image: luckyj5/splunk-circleci-hec-720:latest
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - setup_remote_docker:
+          reusable: true
+      - run:
+          name: Install dependencies
+          command: |
+            sudo gem update --system
+            gem install bundler
+            bundle install --jobs=4 --retry=3 --path vendor/bundler
+
+      - run:
+          name: Builder
+          command: |
+            rake build -t -v
+
+      - run:
+          name: Run unit tests
+          command: |
+            rake test -t -v
+
+      - run:
+          name: Start fluentd plugin
+          command: |
+            .circleci/integration/run.sh
+
+      - run:
+          name: Run integration tests
+          command: |
+            .circleci/integration/test.sh
+
+      - run:
+          name: Push rubygem to s3
+          command: |
+            .circleci/push_gem.sh
+
+      - run:
+          name: Build and push docker image to ecr
+          command: |
+            .circleci/build_and_push.sh

@@ -1197,7 +1197,7 @@ func TestSkipVerify(t *testing.T) {
 	}
 
 	if len(hec.messages) != defaultStreamChannelSize*4 {
-		t.Fatal("Not all messages delivered %s ")
+		t.Fatal("Not all messages delivered")
 	}
 
 	for i, message := range hec.messages {

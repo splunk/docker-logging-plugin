@@ -152,7 +152,7 @@ func (d *driver) ReadLogs(info logger.Info, config logger.ReadConfig) (io.ReadCl
 
 		enc := protoio.NewUint32DelimitedWriter(w, binary.BigEndian)
 		defer enc.Close()
-		defer watcher.Close()
+		defer w.Close()
 
 		var buf logdriver.LogEntry
 		for {
@@ -164,7 +164,6 @@ func (d *driver) ReadLogs(info logger.Info, config logger.ReadConfig) (io.ReadCl
 				}
 
 				buf.Line = msg.Line
-				buf.Partial = msg.Partial
 				buf.TimeNano = msg.Timestamp.UnixNano()
 				buf.Source = msg.Source
 
