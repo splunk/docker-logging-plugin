@@ -10,10 +10,10 @@ jobs:
       - run:
           name: Builder
           command: |
-            - sh .circleci/compile.sh
+            - bash .circleci/compile.sh
 
       - run:
           name: Run unit tests
           command: |
-            - sh .circleci/unit_tests.sh
+            - bash .circleci/unit_tests.sh
 
