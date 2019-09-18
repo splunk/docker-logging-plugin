@@ -10,7 +10,7 @@ jobs:
       - run:
           name: Builder
           command: |
-            .circleci/compile.sh
+            make
 
       - run:
           name: Run unit tests
