@@ -12,13 +12,6 @@ jobs:
           command: |
             bash .circleci/compile.sh
 
-    steps:
-      - checkout
-      - run:
-          name: Builder
-          command: |
-            bash .circleci/compile.sh
-
       - run:
           name: Run unit tests
           command: |
