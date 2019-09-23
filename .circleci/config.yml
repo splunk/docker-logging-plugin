@@ -17,8 +17,3 @@ jobs:
           command: |
             bash .circleci/unit_tests.sh
 
-      - run:
-          name: Run functional tests
-          command: |
-            bash .circleci/functional_tests.sh
-
