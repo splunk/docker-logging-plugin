@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -36,6 +37,7 @@ import (
 	"github.com/docker/docker/daemon/logger"
 	"github.com/docker/docker/daemon/logger/loggerutils"
 	"github.com/docker/docker/pkg/urlutil"
+	"github.com/fuyufjh/splunk-hec-go"
 )
 
 const (
@@ -77,6 +79,8 @@ const (
 	defaultReadFifoErrorRetryNumber = 3
 	// Determines if JSON logging is enabled
 	defaultJSONLogs = true
+	// Determines if telemetry is enabled
+	defaultSplunkTelemetry = true
 )
 
 const (
@@ -88,6 +92,7 @@ const (
 	envVarPartialMsgBufferMaximum      = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE"
 	envVarReadFifoErrorRetryNumber     = "SPLUNK_LOGGING_DRIVER_FIFO_ERROR_RETRY_TIME"
 	envVarJSONLogs                     = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
+	envVarSplunkTelemetry              = "SPLUNK_TELEMETRY"
 )
 
 type splunkLoggerInterface interface {
@@ -353,6 +358,10 @@ func New(info logger.Info) (logger.Logger, error) {
 		return nil, fmt.Errorf("unexpected format %s", splunkFormat)
 	}
 
+	if getAdvancedOptionBool(envVarSplunkTelemetry, defaultSplunkTelemetry) {
+		telemetry(info, sourceType, splunkFormat)
+	}
+
 	go loggerWrapper.worker()
 
 	return loggerWrapper, nil
@@ -515,6 +524,54 @@ func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
 	}
 	l.stream <- message
 	return nil
+}
+
+func telemetry(info logger.Info, sourceType string, splunkFormat string) bool {
+
+	type telemetry struct {
+		Component string `json:"component"`
+		Data      struct {
+			JsonLogs                bool   `json:"jsonLogs"`
+			PartialMsgBufferMaximum int    `json:"partialMsgBufferMaximum"`
+			PostMessagesBatchSize   int    `json:"postMessagesBatchSize"`
+			PostMessagesFrequency   int    `json:"postMessagesFrequency"`
+			SplunkFormat            string `json:"splunkFormat"`
+			StreamChannelSize       int    `json:"streamChannelSize"`
+			Sourcetype              string `json:"sourcetype"`
+		} `json:"data"`
+		OptInRequired int64 `json:"optInRequired"`
+	}
+
+	client1 := hec.NewCluster(
+		[]string{info.Config[splunkURLKey]},
+		info.Config[splunkTokenKey],
+	)
+
+	telem := &telemetry{}
+	telem.Component = "app.connect.docker"
+	telem.OptInRequired = 2
+	telem.Data.Sourcetype = sourceType
+	telem.Data.SplunkFormat = splunkFormat
+	telem.Data.PostMessagesFrequency = int(getAdvancedOptionDuration(envVarPostMessagesFrequency, defaultPostMessagesFrequency))
+	telem.Data.PostMessagesBatchSize = getAdvancedOptionInt(envVarPostMessagesBatchSize, defaultPostMessagesBatchSize)
+	telem.Data.StreamChannelSize = getAdvancedOptionInt(envVarStreamChannelSize, defaultStreamChannelSize)
+	telem.Data.PartialMsgBufferMaximum = getAdvancedOptionInt(envVarBufferMaximum, defaultBufferMaximum)
+	telem.Data.JsonLogs, _ = strconv.ParseBool(info.Config[envVarJSONLogs])
+
+	resTelem, _ := json.Marshal(telem)
+
+	telemEvent := hec.NewEvent("telem")
+	telemEvent.SetTime(time.Now())
+	telemEvent.SetSourceType("splunk_connect_telemetry")
+	telemEvent.SetIndex("_introspection")
+	telemEvent.Event = string(resTelem)
+
+	err := client1.WriteBatch([]*hec.Event{telemEvent})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return true
+
 }
 
 /*
