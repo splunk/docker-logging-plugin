@@ -533,6 +533,7 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 
 	type telemetryEvent struct {
 		Component string `json:"component"`
+		Type      string `json:"type"`
 		Data      struct {
 			JsonLogs                bool   `json:"jsonLogs"`
 			PartialMsgBufferMaximum int    `json:"partialMsgBufferMaximum"`
@@ -547,6 +548,7 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 
 	telem := &telemetryEvent{}
 	telem.Component = "app.connect.docker"
+	telem.Type = "event"
 	telem.OptInRequired = 2
 	telem.Data.Sourcetype = sourceType
 	telem.Data.SplunkFormat = splunkFormat
@@ -561,17 +563,17 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 		Source:     "telemetry",
 		SourceType: "splunk_connect_telemetry",
 		Index:      "_introspection",
-		Time:		timestamp,
-		Event:		telem,
+		Time:       timestamp,
+		Event:      telem,
 	}
 
 	messageArray = append(messageArray, telemMessage)
 
 	telemClient := hecClient{
 		transport: l.hec.transport,
-		client: l.hec.client,
-		auth: l.hec.auth,
-		url: l.hec.url,
+		client:    l.hec.client,
+		auth:      l.hec.auth,
+		url:       l.hec.url,
 	}
 
 	if err := telemClient.tryPostMessages(messageArray); err != nil {
