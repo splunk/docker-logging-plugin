@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -37,7 +36,6 @@ import (
 	"github.com/docker/docker/daemon/logger"
 	"github.com/docker/docker/daemon/logger/loggerutils"
 	"github.com/docker/docker/pkg/urlutil"
-	"github.com/fuyufjh/splunk-hec-go"
 )
 
 const (
@@ -359,7 +357,7 @@ func New(info logger.Info) (logger.Logger, error) {
 	}
 
 	if getAdvancedOptionBool(envVarSplunkTelemetry, defaultSplunkTelemetry) {
-		telemetry(info, sourceType, splunkFormat)
+		go telemetry(info, logger, sourceType, splunkFormat)
 	}
 
 	go loggerWrapper.worker()
@@ -526,9 +524,14 @@ func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
 	return nil
 }
 
-func telemetry(info logger.Info, sourceType string, splunkFormat string) bool {
+func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkFormat string) {
 
-	type telemetry struct {
+	//Send weekly
+	timer := time.NewTicker(600000000000000)
+	messageArray := []*splunkMessage{}
+	timestamp := strconv.FormatInt(time.Now().UTC().UnixNano()/int64(time.Second), 10)
+
+	type telemetryEvent struct {
 		Component string `json:"component"`
 		Data      struct {
 			JsonLogs                bool   `json:"jsonLogs"`
@@ -542,12 +545,7 @@ func telemetry(info logger.Info, sourceType string, splunkFormat string) bool {
 		OptInRequired int64 `json:"optInRequired"`
 	}
 
-	client1 := hec.NewCluster(
-		[]string{info.Config[splunkURLKey]},
-		info.Config[splunkTokenKey],
-	)
-
-	telem := &telemetry{}
+	telem := &telemetryEvent{}
 	telem.Component = "app.connect.docker"
 	telem.OptInRequired = 2
 	telem.Data.Sourcetype = sourceType
@@ -558,19 +556,36 @@ func telemetry(info logger.Info, sourceType string, splunkFormat string) bool {
 	telem.Data.PartialMsgBufferMaximum = getAdvancedOptionInt(envVarBufferMaximum, defaultBufferMaximum)
 	telem.Data.JsonLogs, _ = strconv.ParseBool(info.Config[envVarJSONLogs])
 
-	resTelem, _ := json.Marshal(telem)
-
-	telemEvent := hec.NewEvent("telem")
-	telemEvent.SetTime(time.Now())
-	telemEvent.SetSourceType("splunk_connect_telemetry")
-	telemEvent.SetIndex("_introspection")
-	telemEvent.Event = string(resTelem)
-
-	err := client1.WriteBatch([]*hec.Event{telemEvent})
-	if err != nil {
-		log.Fatal(err)
+	var telemMessage = &splunkMessage{
+		Host:       "telemetry",
+		Source:     "telemetry",
+		SourceType: "splunk_connect_telemetry",
+		Index:      "_introspection",
+		Time:		timestamp,
+		Event:		telem,
 	}
-	return true
+
+	messageArray = append(messageArray, telemMessage)
+
+	telemClient := hecClient{
+		transport: l.hec.transport,
+		client: l.hec.client,
+		auth: l.hec.auth,
+		url: l.hec.url,
+	}
+
+	if err := telemClient.tryPostMessages(messageArray); err != nil {
+		logrus.Error(err)
+	}
+
+	for {
+		select {
+		case <-timer.C:
+			if err := telemClient.tryPostMessages(messageArray); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
 
 }
 

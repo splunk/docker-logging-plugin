@@ -1429,3 +1429,9 @@ func TestCannotSendAfterClose(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSetTelemetry(t *testing.T) {
+	if err := os.Setenv(envVarSplunkTelemetry, ""); err != nil {
+		t.Fatal(err)
+	}
+}
