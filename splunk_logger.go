@@ -527,7 +527,8 @@ func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
 func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkFormat string) {
 
 	//Send weekly
-	timer := time.NewTicker(600000000000000)
+	waitTime := 7 * 24 * time.Hour
+	timer := time.NewTicker(waitTime)
 	messageArray := []*splunkMessage{}
 	timestamp := strconv.FormatInt(time.Now().UTC().UnixNano()/int64(time.Second), 10)
 
