@@ -228,22 +228,8 @@ func New(info logger.Info) (logger.Logger, error) {
 		Transport: transport,
 	}
 
-	source := ""
-	if tagTemplateSource, ok := info.Config[splunkSourceKey]; !ok || tagTemplateSource != "" {
-		source, err = ParseLogTagSource(info, loggerutils.DefaultTemplate, splunkSourceKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	sourceType := ""
-	if tagTemplateSource, ok := info.Config[splunkSourceTypeKey]; !ok || tagTemplateSource != "" {
-		sourceType, err = ParseLogTagSource(info, loggerutils.DefaultTemplate, splunkSourceTypeKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+	source := info.Config[splunkSourceKey]
+	sourceType := info.Config[splunkSourceTypeKey]
 	index := info.Config[splunkIndexKey]
 
 	var nullMessage = &splunkMessage{
@@ -527,6 +513,9 @@ func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
 func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkFormat string) {
 
 	//Send weekly
+	if sourceType == "" {
+		sourceType = "splunk_connect_docker"
+	}
 	waitTime := 7 * 24 * time.Hour
 	timer := time.NewTicker(waitTime)
 	messageArray := []*splunkMessage{}
@@ -536,6 +525,7 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 		Component string `json:"component"`
 		Type      string `json:"type"`
 		Data      struct {
+			App                     string `json:"app"`
 			JsonLogs                bool   `json:"jsonLogs"`
 			PartialMsgBufferMaximum int    `json:"partialMsgBufferMaximum"`
 			PostMessagesBatchSize   int    `json:"postMessagesBatchSize"`
@@ -551,13 +541,14 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 	telem.Component = "app.connect.docker"
 	telem.Type = "event"
 	telem.OptInRequired = 2
+	telem.Data.App = "splunk_connect_docker"
 	telem.Data.Sourcetype = sourceType
 	telem.Data.SplunkFormat = splunkFormat
 	telem.Data.PostMessagesFrequency = int(getAdvancedOptionDuration(envVarPostMessagesFrequency, defaultPostMessagesFrequency))
 	telem.Data.PostMessagesBatchSize = getAdvancedOptionInt(envVarPostMessagesBatchSize, defaultPostMessagesBatchSize)
 	telem.Data.StreamChannelSize = getAdvancedOptionInt(envVarStreamChannelSize, defaultStreamChannelSize)
 	telem.Data.PartialMsgBufferMaximum = getAdvancedOptionInt(envVarBufferMaximum, defaultBufferMaximum)
-	telem.Data.JsonLogs, _ = strconv.ParseBool(info.Config[envVarJSONLogs])
+	telem.Data.JsonLogs = getAdvancedOptionBool(envVarJSONLogs, defaultJSONLogs)
 
 	var telemMessage = &splunkMessage{
 		Host:       "telemetry",
