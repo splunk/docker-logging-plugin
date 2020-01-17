@@ -376,3 +376,39 @@ def test_splunk_tag(setup):
     assert len(events) == 1
     parsed_event = json.loads(events[0]["_raw"])
     assert parsed_event["tag"] == options["tag"]
+
+
+def test_splunk_telemety(setup):
+    '''
+    Test that telemetry event is sent to _introspection index.
+    '''
+    logging.getLogger().info("testing telemetry")
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test telemetry", False)], u_id)
+
+    index = "_introspection"
+    component = "app.connect.docker"
+
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"])
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(10)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(index=index,
+                                      id="component={0}".format(component),
+                                      start_time="-15m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with component=app.connect.docker",
+                             len(events))
+    assert len(events) > 0
+
+
