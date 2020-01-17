@@ -230,6 +230,9 @@ func New(info logger.Info) (logger.Logger, error) {
 
 	source := info.Config[splunkSourceKey]
 	sourceType := info.Config[splunkSourceTypeKey]
+	if sourceType == "" {
+		sourceType = "splunk_connect_docker"
+	}
 	index := info.Config[splunkIndexKey]
 
 	var nullMessage = &splunkMessage{
@@ -513,9 +516,6 @@ func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
 func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkFormat string) {
 
 	//Send weekly
-	if sourceType == "" {
-		sourceType = "splunk_connect_docker"
-	}
 	waitTime := 7 * 24 * time.Hour
 	timer := time.NewTicker(waitTime)
 	messageArray := []*splunkMessage{}

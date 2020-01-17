@@ -409,6 +409,6 @@ def test_splunk_telemety(setup):
     logging.getLogger().info("Splunk received %s events in the last minute" +
                              " with component=app.connect.docker",
                              len(events))
-    assert len(events) == 1
+    assert len(events) > 0
 
 
