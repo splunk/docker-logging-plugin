@@ -2,9 +2,9 @@
 	"description": "Splunk Logging Plugin",
 	"documentation": "https://github.com/splunk/docker-logging-plugin",
 	"entrypoint": ["/bin/splunk-logging-plugin"],
-    "network": {
-        "type": "host"
-    },
+	"network": {
+		"type": "host"
+	},
 	"interface": {
 		"types": ["docker.logdriver/1.0"],
 		"socket": "splunklog.sock"
@@ -59,8 +59,14 @@
 			"settable": ["value"]
 		},
 		{
-			"name": "SPLUNK_LOGGING_DRIVER_JSON_LOGS",
-			"description": "Determines if JSON logging is enabled.",
+			"name": "SPLUNK_LOGGING_DRIVER_JSON_LOGS_DISABLED",
+			"description": "Determines if JSON logging is disabled.",
+			"value": "false",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_TELEMETRY",
+			"description": "Determines if telemetry is enabled.",
 			"value": "true",
 			"settable": ["value"]
 		}

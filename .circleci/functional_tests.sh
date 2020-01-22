@@ -3,11 +3,15 @@ export SHELL=/bin/bash
 
 set -e
 
+echo "Running functional tests..."
+
+# Start the plugin
+/go/src/github.com/splunk/docker-logging-plugin/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 
 echo "Creating virtual env to run functional tests..."
-cd test
+cd /go/src/github.com/splunk/docker-logging-plugin/test
 pip3 install virtualenv
-virtualenv --python=python3.7 venv
+virtualenv --python=python3.5 venv
 source venv/bin/activate
 pip install -r requirements.txt
 
@@ -15,8 +19,8 @@ pip install -r requirements.txt
 python -m pytest \
 	--splunkd-url https://localhost:8089 \
 	--splunk-user admin \
-	--splunk-password changeme \
-	--splunk-hec-url http://localhost:8088 \
-	--splunk-hec-token 2160C7EF-2CE9-4307-A180-F852B99CF417 \
-	--docker-plugin-path /Users/gpatzlaff/Code/docker/update-tests/docker-logging-plugin/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
-	--fifo-path /Users/gpatzlaff/Code/docker/update-tests/docker-logging-plugin/pipe
+	--splunk-password #{ENV['SPLUNK_PASSWORD']} \
+	--splunk-hec-url #{ENV['SPLUNK_HEC_HOST']}:8088 \
+	--splunk-hec-token #{ENV['SPLUNK_HEC_TOKEN']} \
+	--docker-plugin-path /go/src/github.com/splunk/docker-logging-plugin/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+	--fifo-path /go/src/github.com/splunk/docker-logging-plugin/pipe

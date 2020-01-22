@@ -106,7 +106,7 @@ def test_splunk_source_type(setup, test_input, expected):
     '''
     Test that docker logs can be indexed with the specified
     sourcetype successfully. If no source is specified, the default
-    "httpevent" is used
+    "splunk_connect_docker" is used
     '''
 
     logging.getLogger().info("testing test_splunk_source_type input={0} \
@@ -124,7 +124,7 @@ def test_splunk_source_type(setup, test_input, expected):
                           setup["splunk_hec_token"],
                           options=options)
 
-    sourcetype = test_input if test_input else "httpevent"
+    sourcetype = test_input if test_input else "splunk_connect_docker"
 
     # wait for 10 seconds to allow messages to be sent
     time.sleep(10)
@@ -376,3 +376,47 @@ def test_splunk_tag(setup):
     assert len(events) == 1
     parsed_event = json.loads(events[0]["_raw"])
     assert parsed_event["tag"] == options["tag"]
+
+
+def test_splunk_telemety(setup):
+    '''
+    Test that telemetry event is sent to _introspection index.
+    '''
+    logging.getLogger().info("testing telemetry")
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test telemetry", False)], u_id)
+
+    options = {"splunk-sourcetype": "telemetry"}
+
+    request_start_logging(file_path,
+                              setup["splunk_hec_url"],
+                              setup["splunk_hec_token"],
+                              options=options)
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(10)
+    request_stop_logging(file_path)
+
+    index = "_introspection"
+    sourcetype = "telemetry"
+
+
+    # check that events get to splunk
+    events = check_events_from_splunk(index=index,
+                                      id="data.sourcetype={0}".format(sourcetype),
+                                      start_time="-5m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with component=app.connect.docker",
+                             len(events))
+    assert len(events) == 1
+
+
+
+
+
+

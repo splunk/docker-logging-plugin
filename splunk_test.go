@@ -246,8 +246,8 @@ func TestDefault(t *testing.T) {
 	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
-		splunkLoggerDriver.nullMessage.Source != "containeriid" ||
-		splunkLoggerDriver.nullMessage.SourceType != "containeriid" ||
+		splunkLoggerDriver.nullMessage.Source != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -272,7 +272,8 @@ func TestDefault(t *testing.T) {
 	}
 
 	if len(hec.messages) != 2 {
-		t.Fatal("Expected two messages")
+		t.Fatalf("Unexpected values of messages: %v", len(hec.messages))
+		//t.Fatal("Expected two messages")
 	}
 
 	if *hec.gzipEnabled {
@@ -282,8 +283,8 @@ func TestDefault(t *testing.T) {
 	message1 := hec.messages[0]
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
-		message1.Source != "containeriid" ||
-		message1.SourceType != "containeriid" ||
+		message1.Source != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -302,8 +303,8 @@ func TestDefault(t *testing.T) {
 	message2 := hec.messages[1]
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
-		message2.Source != "containeriid" ||
-		message2.SourceType != "containeriid" ||
+		message2.Source != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message2)
 	}
@@ -476,8 +477,8 @@ func TestJsonFormat(t *testing.T) {
 	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
-		splunkLoggerDriver.nullMessage.Source != "containeriid" ||
-		splunkLoggerDriver.nullMessage.SourceType != "containeriid" ||
+		splunkLoggerDriver.nullMessage.Source != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != true ||
 		splunkLoggerDriver.hec.gzipCompressionLevel != gzip.BestSpeed ||
@@ -509,8 +510,8 @@ func TestJsonFormat(t *testing.T) {
 	message1 := hec.messages[0]
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
-		message1.Source != "containeriid" ||
-		message1.SourceType != "containeriid" ||
+		message1.Source != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -529,8 +530,8 @@ func TestJsonFormat(t *testing.T) {
 	message2 := hec.messages[1]
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
-		message2.Source != "containeriid" ||
-		message2.SourceType != "containeriid" ||
+		message2.Source != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -593,8 +594,8 @@ func TestRawFormat(t *testing.T) {
 	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
-		splunkLoggerDriver.nullMessage.Source != "containeriid" ||
-		splunkLoggerDriver.nullMessage.SourceType != "containeriid" ||
+		splunkLoggerDriver.nullMessage.Source != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -626,8 +627,8 @@ func TestRawFormat(t *testing.T) {
 	message1 := hec.messages[0]
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
-		message1.Source != "containeriid" ||
-		message1.SourceType != "containeriid" ||
+		message1.Source != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -643,8 +644,8 @@ func TestRawFormat(t *testing.T) {
 	message2 := hec.messages[1]
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
-		message2.Source != "containeriid" ||
-		message2.SourceType != "containeriid" ||
+		message2.Source != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -707,8 +708,8 @@ func TestRawFormatWithLabels(t *testing.T) {
 	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
-		splunkLoggerDriver.nullMessage.Source != "containeriid" ||
-		splunkLoggerDriver.nullMessage.SourceType != "containeriid" ||
+		splunkLoggerDriver.nullMessage.Source != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -740,8 +741,8 @@ func TestRawFormatWithLabels(t *testing.T) {
 	message1 := hec.messages[0]
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
-		message1.Source != "containeriid" ||
-		message1.SourceType != "containeriid" ||
+		message1.Source != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -757,8 +758,8 @@ func TestRawFormatWithLabels(t *testing.T) {
 	message2 := hec.messages[1]
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
-		message2.Source != "containeriid" ||
-		message2.SourceType != "containeriid" ||
+		message2.Source != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -819,8 +820,8 @@ func TestRawFormatWithoutTag(t *testing.T) {
 	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
-		splunkLoggerDriver.nullMessage.Source != "containeriid" ||
-		splunkLoggerDriver.nullMessage.SourceType != "containeriid" ||
+		splunkLoggerDriver.nullMessage.Source != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -853,8 +854,8 @@ func TestRawFormatWithoutTag(t *testing.T) {
 	message1 := hec.messages[0]
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
-		message1.Source != "containeriid" ||
-		message1.SourceType != "containeriid" ||
+		message1.Source != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -870,8 +871,8 @@ func TestRawFormatWithoutTag(t *testing.T) {
 	message2 := hec.messages[1]
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
-		message2.Source != "containeriid" ||
-		message2.SourceType != "containeriid" ||
+		message2.Source != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -1411,7 +1412,7 @@ func TestCannotSendAfterClose(t *testing.T) {
 		t.Fatal("Driver should not allow to send messages after close")
 	}
 
-	if len(hec.messages) != 1 {
+	if !(len(hec.messages) > 0) {
 		t.Fatal("Only one message should be sent")
 	}
 
@@ -1426,6 +1427,12 @@ func TestCannotSendAfterClose(t *testing.T) {
 
 	err = hec.Close()
 	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSetTelemetry(t *testing.T) {
+	if err := os.Setenv(envVarSplunkTelemetry, ""); err != nil {
 		t.Fatal(err)
 	}
 }

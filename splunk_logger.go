@@ -69,7 +69,7 @@ const (
 	// Number of messages allowed to be queued in the channel
 	defaultStreamChannelSize = 4 * defaultPostMessagesBatchSize
 	// Partial log hold duration (if we are not reaching max buffer size)
-	defaultPartialMsgBufferHoldDuration = 5 * time.Second
+	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
 	// Maximum buffer size for partial logging
 	defaultPartialMsgBufferMaximum = 1024 * 1024
 	// Number of retry if error happens while reading logs from docker provided fifo
@@ -77,6 +77,8 @@ const (
 	defaultReadFifoErrorRetryNumber = 3
 	// Determines if JSON logging is enabled
 	defaultJSONLogs = true
+	// Determines if telemetry is enabled
+	defaultSplunkTelemetry = true
 )
 
 const (
@@ -87,7 +89,8 @@ const (
 	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION"
 	envVarPartialMsgBufferMaximum      = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE"
 	envVarReadFifoErrorRetryNumber     = "SPLUNK_LOGGING_DRIVER_FIFO_ERROR_RETRY_TIME"
-	envVarJSONLogs                     = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
+	envVarJSONLogs					   = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
+	envVarSplunkTelemetry              = "SPLUNK_TELEMETRY"
 )
 
 type splunkLoggerInterface interface {
@@ -225,22 +228,11 @@ func New(info logger.Info) (logger.Logger, error) {
 		Transport: transport,
 	}
 
-	source := ""
-	if tagTemplateSource, ok := info.Config[splunkSourceKey]; !ok || tagTemplateSource != "" {
-		source, err = ParseLogTagSource(info, loggerutils.DefaultTemplate, splunkSourceKey)
-		if err != nil {
-			return nil, err
-		}
+	source := info.Config[splunkSourceKey]
+	sourceType := info.Config[splunkSourceTypeKey]
+	if sourceType == "" {
+		sourceType = "splunk_connect_docker"
 	}
-
-	sourceType := ""
-	if tagTemplateSource, ok := info.Config[splunkSourceTypeKey]; !ok || tagTemplateSource != "" {
-		sourceType, err = ParseLogTagSource(info, loggerutils.DefaultTemplate, splunkSourceTypeKey)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	index := info.Config[splunkIndexKey]
 
 	var nullMessage = &splunkMessage{
@@ -351,6 +343,10 @@ func New(info logger.Info) (logger.Logger, error) {
 		loggerWrapper = &splunkLoggerRaw{logger, prefix.Bytes()}
 	default:
 		return nil, fmt.Errorf("unexpected format %s", splunkFormat)
+	}
+
+	if getAdvancedOptionBool(envVarSplunkTelemetry, defaultSplunkTelemetry) {
+		go telemetry(info, logger, sourceType, splunkFormat)
 	}
 
 	go loggerWrapper.worker()
@@ -517,6 +513,77 @@ func (l *splunkLogger) queueMessageAsync(message *splunkMessage) error {
 	return nil
 }
 
+func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkFormat string) {
+
+	//Send weekly
+	waitTime := 7 * 24 * time.Hour
+	timer := time.NewTicker(waitTime)
+	messageArray := []*splunkMessage{}
+	timestamp := strconv.FormatInt(time.Now().UTC().UnixNano()/int64(time.Second), 10)
+
+	type telemetryEvent struct {
+		Component string `json:"component"`
+		Type      string `json:"type"`
+		Data      struct {
+			App                     string `json:"app"`
+			JsonLogs                bool   `json:"jsonLogs"`
+			PartialMsgBufferMaximum int    `json:"partialMsgBufferMaximum"`
+			PostMessagesBatchSize   int    `json:"postMessagesBatchSize"`
+			PostMessagesFrequency   int    `json:"postMessagesFrequency"`
+			SplunkFormat            string `json:"splunkFormat"`
+			StreamChannelSize       int    `json:"streamChannelSize"`
+			Sourcetype              string `json:"sourcetype"`
+		} `json:"data"`
+		OptInRequired int64 `json:"optInRequired"`
+	}
+
+	telem := &telemetryEvent{}
+	telem.Component = "app.connect.docker"
+	telem.Type = "event"
+	telem.OptInRequired = 2
+	telem.Data.App = "splunk_connect_docker"
+	telem.Data.Sourcetype = sourceType
+	telem.Data.SplunkFormat = splunkFormat
+	telem.Data.PostMessagesFrequency = int(getAdvancedOptionDuration(envVarPostMessagesFrequency, defaultPostMessagesFrequency))
+	telem.Data.PostMessagesBatchSize = getAdvancedOptionInt(envVarPostMessagesBatchSize, defaultPostMessagesBatchSize)
+	telem.Data.StreamChannelSize = getAdvancedOptionInt(envVarStreamChannelSize, defaultStreamChannelSize)
+	telem.Data.PartialMsgBufferMaximum = getAdvancedOptionInt(envVarBufferMaximum, defaultBufferMaximum)
+	telem.Data.JsonLogs = getAdvancedOptionBool(envVarJSONLogs, defaultJSONLogs)
+
+	var telemMessage = &splunkMessage{
+		Host:       "telemetry",
+		Source:     "telemetry",
+		SourceType: "splunk_connect_telemetry",
+		Index:      "_introspection",
+		Time:       timestamp,
+		Event:      telem,
+	}
+
+	messageArray = append(messageArray, telemMessage)
+
+	telemClient := hecClient{
+		transport: l.hec.transport,
+		client:    l.hec.client,
+		auth:      l.hec.auth,
+		url:       l.hec.url,
+	}
+
+	time.Sleep(5 * time.Second)
+	if err := telemClient.tryPostMessages(messageArray); err != nil {
+		logrus.Error(err)
+	}
+
+	for {
+		select {
+		case <-timer.C:
+			if err := telemClient.tryPostMessages(messageArray); err != nil {
+				logrus.Error(err)
+			}
+		}
+	}
+
+}
+
 /*
 main function that handles the log stream processing
 Do a HEC POST when
@@ -575,22 +642,4 @@ func (l *splunkLogger) createSplunkMessage(msg *logger.Message) *splunkMessage {
 	message := *l.nullMessage
 	message.Time = fmt.Sprintf("%f", float64(msg.Timestamp.UnixNano())/float64(time.Second))
 	return &message
-}
-
-func ParseLogTagSource(info logger.Info, defaultTemplate string, splunkField string) (string, error) {
-	tagTemplate := info.Config[splunkField]
-	if tagTemplate == "" {
-		tagTemplate = defaultTemplate
-	}
-
-	tmpl, err := NewParse("log-tag", tagTemplate)
-	if err != nil {
-		return "", err
-	}
-	buf := new(bytes.Buffer)
-	if err := tmpl.Execute(buf, &info); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }
