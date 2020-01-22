@@ -44,7 +44,7 @@ RUN \
   # Python dependencies
   pip3 install virtualenv
 
-RUN mkdir -p /go/src/github.com/splunk/docker-logging-plugin/splunk-logging-plugin/rootfs/bin
+RUN sudo mkdir -p /go/src/github.com/splunk/docker-logging-plugin/splunk-logging-plugin/rootfs/bin
 
 WORKDIR /go/src/github.com/splunk/docker-logging-plugin/
 

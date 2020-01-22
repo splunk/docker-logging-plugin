@@ -3,7 +3,7 @@ jobs:
   build:
     machine: true
 
-    working_directory: ~/repo
+    working_directory: /go/src/github.com/splunk/docker-logging-plugin
 
     steps:
       - checkout
