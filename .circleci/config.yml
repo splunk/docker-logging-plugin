@@ -3,7 +3,7 @@ jobs:
   build:
     machine: true
 
-    working_directory: ~/repo
+    working_directory: /go/src/github.com/splunk/docker-logging-plugin
 
     steps:
       - checkout
@@ -11,11 +11,6 @@ jobs:
           name: Builder
           command: |
             bash .circleci/compile.sh
-
-      - run:
-          name: Run unit tests
-          command: |
-            bash .circleci/unit_tests.sh
 
       - run:
           name: Run unit tests

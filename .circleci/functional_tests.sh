@@ -17,7 +17,7 @@ pip install -r requirements.txt
 
 
 python -m pytest \
-	--splunkd-url https://localhost:8089 \
+	--splunkd-url https://#{ENV['SPLUNK_HEC_HOST']}:8089 \
 	--splunk-user admin \
 	--splunk-password #{ENV['SPLUNK_PASSWORD']} \
 	--splunk-hec-url #{ENV['SPLUNK_HEC_HOST']}:8088 \
