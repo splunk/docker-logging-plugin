@@ -10,7 +10,8 @@ echo "Running functional tests..."
 
 echo "Creating virtual env to run functional tests..."
 pwd
-cd /docker-logging-plugin/test
+ls
+cd docker-logging-plugin/test
 pip3 install virtualenv
 virtualenv --python=python3.5 venv
 source venv/bin/activate
