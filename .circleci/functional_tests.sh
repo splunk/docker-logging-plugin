@@ -9,6 +9,7 @@ echo "Running functional tests..."
 /home/circleci/repo/docker-logging-plugin/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 
 echo "Creating virtual env to run functional tests..."
+echo pwd
 cd /home/circleci/repo/docker-logging-plugin/test
 pip3 install virtualenv
 virtualenv --python=python3.5 venv
