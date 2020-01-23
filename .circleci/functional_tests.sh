@@ -23,5 +23,5 @@ python -m pytest \
 	--splunk-password ${SPLUNK_PASSWORD} \
 	--splunk-hec-url ${SPLUNK_HEC_HOST}:8088 \
 	--splunk-hec-token ${SPLUNK_HEC_TOKEN} \
-	--docker-plugin-path /home/circleci/repo/docker-logging-plugin/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
-	--fifo-path /home/circleci/repo/docker-logging-plugin/pipe
+	--docker-plugin-path /home/circleci/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+	--fifo-path /home/circleci/repo/pipe
