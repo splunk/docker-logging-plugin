@@ -6,14 +6,14 @@ set -e
 echo "Running functional tests..."
 
 # Start the plugin
-/home/circleci/repo/docker-logging-plugin/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
+splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 
 echo "Creating virtual env to run functional tests..."
 pwd
 ls
 cd test
 pip3 install virtualenv
-virtualenv --python=python3.5 venv
+virtualenv --python=python3.7 venv
 source venv/bin/activate
 pip install -r requirements.txt
 
