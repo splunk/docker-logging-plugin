@@ -9,9 +9,8 @@ echo "Running functional tests..."
 sudo splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 
 echo "Creating virtual env to run functional tests..."
-pwd
-ls
 cd test
+pyenv global 3.7.0
 pip3 install virtualenv
 virtualenv --python=python3.7 venv
 source venv/bin/activate
