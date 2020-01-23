@@ -18,10 +18,10 @@ pip install -r requirements.txt
 
 
 python -m pytest \
-	--splunkd-url https://54.183.32.171:8089 \
+	--splunkd-url https://127.0.0.1:8089 \
 	--splunk-user admin \
-	--splunk-password changeme \
-	--splunk-hec-url https://54.183.32.171:8088 \
-	--splunk-hec-token 029a2c72-e8e7-4b8e-9d1d-4ddf4b6f229e \
+	--splunk-password helloworld \
+	--splunk-hec-url https://127.0.0.1:8088 \
+	--splunk-hec-token a6b5e77f-d5f6-415a-bd43-930cecb12959 \
 	--docker-plugin-path /home/circleci/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
 	--fifo-path /home/circleci/repo/pipe
