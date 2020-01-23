@@ -5,6 +5,8 @@ set -e
 
 echo "Running functional tests..."
 
+sudo su
+
 # Start the plugin
 splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 
