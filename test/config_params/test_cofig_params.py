@@ -106,7 +106,7 @@ def test_splunk_source_type(setup, test_input, expected):
     '''
     Test that docker logs can be indexed with the specified
     sourcetype successfully. If no source is specified, the default
-    "httpevent" is used
+    "splunk_connect_docker" is used
     '''
 
     logging.getLogger().info("testing test_splunk_source_type input={0} \
@@ -124,7 +124,7 @@ def test_splunk_source_type(setup, test_input, expected):
                           setup["splunk_hec_token"],
                           options=options)
 
-    sourcetype = test_input if test_input else "httpevent"
+    sourcetype = test_input if test_input else "splunk_connect_docker"
 
     # wait for 10 seconds to allow messages to be sent
     time.sleep(10)
