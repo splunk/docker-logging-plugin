@@ -69,7 +69,7 @@ const (
 	// Number of messages allowed to be queued in the channel
 	defaultStreamChannelSize = 4 * defaultPostMessagesBatchSize
 	// Partial log hold duration (if we are not reaching max buffer size)
-	defaultPartialMsgBufferHoldDuration = 5 * time.Second
+	defaultPartialMsgBufferHoldDuration = 100 * time.Millisecond
 	// Maximum buffer size for partial logging
 	defaultPartialMsgBufferMaximum = 1024 * 1024
 	// Number of retry if error happens while reading logs from docker provided fifo
@@ -89,7 +89,7 @@ const (
 	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION"
 	envVarPartialMsgBufferMaximum      = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE"
 	envVarReadFifoErrorRetryNumber     = "SPLUNK_LOGGING_DRIVER_FIFO_ERROR_RETRY_TIME"
-	envVarJSONLogs                     = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
+	envVarJSONLogs					   = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
 	envVarSplunkTelemetry              = "SPLUNK_TELEMETRY"
 )
 
@@ -568,6 +568,7 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 		url:       l.hec.url,
 	}
 
+	time.Sleep(5 * time.Second)
 	if err := telemClient.tryPostMessages(messageArray); err != nil {
 		logrus.Error(err)
 	}
@@ -641,22 +642,4 @@ func (l *splunkLogger) createSplunkMessage(msg *logger.Message) *splunkMessage {
 	message := *l.nullMessage
 	message.Time = fmt.Sprintf("%f", float64(msg.Timestamp.UnixNano())/float64(time.Second))
 	return &message
-}
-
-func ParseLogTagSource(info logger.Info, defaultTemplate string, splunkField string) (string, error) {
-	tagTemplate := info.Config[splunkField]
-	if tagTemplate == "" {
-		tagTemplate = defaultTemplate
-	}
-
-	tmpl, err := NewParse("log-tag", tagTemplate)
-	if err != nil {
-		return "", err
-	}
-	buf := new(bytes.Buffer)
-	if err := tmpl.Execute(buf, &info); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }

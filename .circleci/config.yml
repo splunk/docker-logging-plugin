@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    resource_class: large
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Builder
+          command: |
+            bash .circleci/compile.sh
+
+      - run:
+          name: Run unit tests
+          command: |
+            bash .circleci/unit_tests.sh
+
