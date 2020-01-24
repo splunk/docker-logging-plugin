@@ -6,8 +6,7 @@ set -e
 echo "Running functional tests..."
 
 # Start the plugin
-sudo splunk-logging-plugin/rootfs/bin/splunk-logging-plugin
-sleep 30
+sudo splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 
 echo "Creating virtual env to run functional tests..."
 pyenv global 3.7.0
