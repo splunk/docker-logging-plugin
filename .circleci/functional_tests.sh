@@ -5,10 +5,11 @@ set -e
 
 echo "Running functional tests..."
 
-sudo su
+
 
 # Start the plugin
-splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
+sudo splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
+
 
 echo "Creating virtual env to run functional tests..."
 cd test
@@ -18,7 +19,7 @@ apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libread
 export PATH="~/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-pyenv install 3.7.0
+pyenv install --verbose 3.7.0
 pyenv global 3.7.0
 pip install -r requirements.txt
 
