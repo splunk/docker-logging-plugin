@@ -152,7 +152,6 @@ func (d *driver) ReadLogs(info logger.Info, config logger.ReadConfig) (io.ReadCl
 
 		enc := protoio.NewUint32DelimitedWriter(w, binary.BigEndian)
 		defer enc.Close()
-		defer w.Close()
 
 		var buf logdriver.LogEntry
 		for {

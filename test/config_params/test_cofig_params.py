@@ -388,27 +388,29 @@ def test_splunk_telemety(setup):
     file_path = setup["fifo_path"]
     start_log_producer_from_input(file_path, [("test telemetry", False)], u_id)
 
-    index = "_introspection"
-    component = "app.connect.docker"
+    options = {"splunk-sourcetype": "telemetry"}
 
     request_start_logging(file_path,
-                          setup["splunk_hec_url"],
-                          setup["splunk_hec_token"])
+                              setup["splunk_hec_url"],
+                              setup["splunk_hec_token"],
+                              options=options)
 
     # wait for 10 seconds to allow messages to be sent
     time.sleep(10)
     request_stop_logging(file_path)
 
+    index = "_introspection"
+    sourcetype = "telemetry"
+
+
     # check that events get to splunk
     events = check_events_from_splunk(index=index,
-                                      id="component={0}".format(component),
-                                      start_time="-15m@m",
+                                      id="data.sourcetype={0}".format(sourcetype),
+                                      start_time="-5m@m",
                                       url=setup["splunkd_url"],
                                       user=setup["splunk_user"],
                                       password=setup["splunk_password"])
     logging.getLogger().info("Splunk received %s events in the last minute" +
                              " with component=app.connect.docker",
                              len(events))
-    assert len(events) > 0
-
-
+    assert len(events) == 1
