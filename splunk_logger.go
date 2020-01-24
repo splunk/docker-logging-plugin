@@ -89,7 +89,7 @@ const (
 	envVarPartialMsgBufferHoldDuration = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION"
 	envVarPartialMsgBufferMaximum      = "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE"
 	envVarReadFifoErrorRetryNumber     = "SPLUNK_LOGGING_DRIVER_FIFO_ERROR_RETRY_TIME"
-	envVarJSONLogs					   = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
+	envVarJSONLogs                     = "SPLUNK_LOGGING_DRIVER_JSON_LOGS"
 	envVarSplunkTelemetry              = "SPLUNK_TELEMETRY"
 )
 
