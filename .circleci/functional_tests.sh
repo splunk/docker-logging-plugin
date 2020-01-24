@@ -13,7 +13,7 @@ splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 echo "Creating virtual env to run functional tests..."
 cd test
 curl -L https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer | bash
-apt-get update && sudo apt-get upgrade
+apt-get update
 apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev git
 export PATH="~/.pyenv/bin:$PATH"
 eval "$(pyenv init -)"
