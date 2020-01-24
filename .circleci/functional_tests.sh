@@ -26,7 +26,7 @@ pip install -r requirements.txt
 python -m pytest \
 	--splunkd-url https://$SPLUNK_HEC_HOST:8089 \
 	--splunk-user admin \
-	--splunk-password $SPLUNK_PASSWORD \
+	--splunk-password notchangeme \
 	--splunkd-url https://$SPLUNK_HEC_HOST:8088 \
 	--splunk-hec-token $SPLUNK_HEC_TOKEN \
 	--docker-plugin-path /home/circleci/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \

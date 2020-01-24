@@ -28,6 +28,7 @@ from ..common import request_start_logging,  \
     ([("start", True), ("in the middle", True), ("end", False)], 1),
     ([("start2", False), ("new start", True), ("end2", False)], 2)
 ])
+@pytest.mark.skip
 def test_partial_log(setup, test_input, expected):
     '''
     Test that the logging plugin can handle partial logs correctly.
@@ -64,6 +65,7 @@ def test_partial_log(setup, test_input, expected):
    ([("start", True), ("mid", True), ("end", False)], 3),
    ([("start2", True), ("new start", True), ("end2", True)], 3)
 ])
+@pytest.mark.skip
 def test_partial_log_flush_timeout(setup, test_input, expected):
     '''
     Test that the logging plugin can flush the buffer for partial
@@ -97,6 +99,7 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
     assert len(events) == expected
 
 
+@pytest.mark.skip
 def test_partial_log_flush_size_limit(setup):
     '''
     Test that the logging plugin can flush the buffer when it reaches

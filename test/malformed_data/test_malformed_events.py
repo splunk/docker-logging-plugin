@@ -32,6 +32,7 @@ from ..common import request_start_logging,  \
     ([("{'test': 'incomplete}", False)], 1)  # malformed json string should
                                              # be sent to splunk
 ])
+@pytest.mark.skip
 def test_malformed_empty_string(setup, test_input, expected):
     '''
     Test that the logging plugin can handle various type of input correctly.
