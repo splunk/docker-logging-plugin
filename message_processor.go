@@ -107,9 +107,8 @@ func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry,
 	if !buf.Partial || t.shouldFlush(time.Now()) {
 		msg.Line = t.tBuf.Bytes()
 		msg.Source = buf.Source
-		(msg.PLogMetaData != nil) = buf.Partial
 		msg.Timestamp = time.Unix(0, buf.TimeNano)
-
+		msg.Partial = buf.Partial
 		if err := l.Log(&msg); err != nil {
 			logrus.WithField("id", containerid).WithError(err).WithField("message",
 				msg).Error("Error writing log message")
