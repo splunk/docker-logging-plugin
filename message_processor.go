@@ -88,13 +88,11 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and json logger
 				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
-				if !jsonLogs {
-					tmpBuf.reset()
-				} else {
+				if jsonLogs {
 					mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
-					//temp buffer and values reset
-					tmpBuf.reset()
 				}
+				//temp buffer and values reset
+				tmpBuf.reset()
 			}
 		}
 		buf.Reset()
@@ -109,6 +107,7 @@ func (mg messageProcessor) sendMessage(l logger.Logger, buf *logdriver.LogEntry,
 	if !buf.Partial || t.shouldFlush(time.Now()) {
 		msg.Line = t.tBuf.Bytes()
 		msg.Source = buf.Source
+		(msg.PLogMetaData != nil) = buf.Partial
 		msg.Timestamp = time.Unix(0, buf.TimeNano)
 
 		if err := l.Log(&msg); err != nil {
