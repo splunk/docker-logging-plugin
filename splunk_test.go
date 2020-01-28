@@ -1412,7 +1412,7 @@ func TestCannotSendAfterClose(t *testing.T) {
 		t.Fatal("Driver should not allow to send messages after close")
 	}
 
-	if !(len(hec.messages) > 0) {
+	if len(hec.messages) != 1 {
 		t.Fatal("Only one message should be sent")
 	}
 
