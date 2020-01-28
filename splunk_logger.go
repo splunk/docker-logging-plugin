@@ -643,4 +643,3 @@ func (l *splunkLogger) createSplunkMessage(msg *logger.Message) *splunkMessage {
 	message.Time = fmt.Sprintf("%f", float64(msg.Timestamp.UnixNano())/float64(time.Second))
 	return &message
 }
-

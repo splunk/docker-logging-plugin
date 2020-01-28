@@ -1,10 +1,10 @@
 package main
 
 import (
-"bytes"
-"encoding/json"
-"strings"
-"text/template"
+	"bytes"
+	"encoding/json"
+	"strings"
+	"text/template"
 )
 
 // basicFunctions are the set of initial
