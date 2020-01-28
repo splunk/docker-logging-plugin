@@ -643,20 +643,3 @@ func (l *splunkLogger) createSplunkMessage(msg *logger.Message) *splunkMessage {
 	return &message
 }
 
-func ParseLogTagSource(info logger.Info, defaultTemplate string, splunkField string) (string, error) {
-	tagTemplate := info.Config[splunkField]
-	if tagTemplate == "" {
-		tagTemplate = defaultTemplate
-	}
-
-	tmpl, err := NewParse("log-tag", tagTemplate)
-	if err != nil {
-		return "", err
-	}
-	buf := new(bytes.Buffer)
-	if err := tmpl.Execute(buf, &info); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
-}
