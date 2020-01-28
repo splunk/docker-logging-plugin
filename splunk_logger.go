@@ -568,6 +568,7 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 		url:       l.hec.url,
 	}
 
+	time.Sleep(5 * time.Second)
 	if err := telemClient.tryPostMessages(messageArray); err != nil {
 		logrus.Error(err)
 	}
