@@ -20,7 +20,5 @@ jobs:
       - run:
           name: Run functional tests
           command: |
-#           sed -i -e 's/$SPLUNK_HEC_HOST/'"$SPLUNK_HEC_HOST"'/' .circleci/functional_tests.sh
-#           sed -i -e 's/$SPLUNK_HEC_TOKEN/'"$SPLUNK_HEC_TOKEN"'/' .circleci/functional_tests.sh
             bash .circleci/functional_tests.sh
 
