@@ -82,7 +82,7 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
                           setup["splunk_hec_token"])
 
     # wait for 45 seconds to allow messages to be sent
-    time.sleep(15)
+    time.sleep(45)
     request_stop_logging(file_path)
 
     # check that events get to splunk
