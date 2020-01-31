@@ -61,14 +61,16 @@ def test_partial_log(setup, test_input, expected):
 
 
 @pytest.mark.parametrize("test_input, expected", [
-   ([("start", True), ("mid", True), ("end", False)], 3),
-   ([("start2", True), ("new start", True), ("end2", True)], 3)
+   ([("start", True), ("mid", True), ("end", False)], 2),
+   ([("start2", True), ("new start", False), ("end2", True), ("start3", False), ("new start", True), ("end3", False)], 3)
 ])
 def test_partial_log_flush_timeout(setup, test_input, expected):
     '''
     Test that the logging plugin can flush the buffer for partial
     log. If the next partial message didn't arrive in expected
-    time (default 5 sec), it should flush the buffer anyway
+    time (default 5 sec), it should flush the buffer anyway. There
+    is an architectural restriction that the buffer flush can only
+    occur on receipt of a new message beyond the timeout of the buffer.
     '''
     logging.getLogger().info("testing test_partial_log_flush_timeout input={0} \
                 expected={1} event(s)".format(test_input, expected))
@@ -82,7 +84,7 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
                           setup["splunk_hec_token"])
 
     # wait for 45 seconds to allow messages to be sent
-    time.sleep(45)
+    time.sleep(70)
     request_stop_logging(file_path)
 
     # check that events get to splunk

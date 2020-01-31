@@ -60,10 +60,6 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 	// a temp buffer for each log entry
 	var buf logdriver.LogEntry
 	curRetryNumber := 0
-
-	logrus.Info("First messaging, reseting timer")
-	tmpBuf.bufferTimer = time.Now()
-
 	for {
 		// reads a message from the log stream and put it in a buffer
 		if err := dec.ReadMsg(&buf); err != nil {
@@ -88,6 +84,10 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 		curRetryNumber = 0
 
 		if mg.shouldSendMessage(buf.Line) {
+			if tmpBuf.tBuf.Len() == 0 {
+				logrus.Debug("First messaging, reseting timer")
+				tmpBuf.bufferTimer = time.Now()
+			}
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and also json logger if enabled
