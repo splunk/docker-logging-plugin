@@ -36,4 +36,4 @@ sudo venv/bin/python -m pytest \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings -s
+   -p no:warnings
