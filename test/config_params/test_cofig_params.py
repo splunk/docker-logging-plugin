@@ -267,7 +267,6 @@ def test_splunk_format(setup, test_input, expected):
 
 
 @pytest.mark.parametrize("test_input, has_exception", [
-    ("false", False),
     ("true", True),
 ])
 def test_splunk_verify_connection(setup, test_input, has_exception):
