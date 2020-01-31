@@ -165,7 +165,7 @@ SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE | How many pending messages can be in the cha
 SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION | Appends logs that are chunked by docker with 16kb limit. It specifies how long the system can wait for the next message to come. | 100ms 
 SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE	| Appends logs that are chunked by docker with 16kb limit. It specifies the biggest message in bytes that the system can reassemble. The value provided here should be smaller than or equal to the Splunk HEC limit. 1 MB is the default HEC setting. | 1048576 (1mb)
 SPLUNK_LOGGING_DRIVER_JSON_LOGS	| Determines if JSON logging is enabled. https://docs.docker.com/config/containers/logging/json-file/ | true
-SPLUNK_TELEMETRY	| Determines if telemerty is enabled. | true
+SPLUNK_TELEMETRY	| Determines if telemetry is enabled. | true
 
 
 ### Message formats

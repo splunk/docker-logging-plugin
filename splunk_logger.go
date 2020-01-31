@@ -568,6 +568,7 @@ func telemetry(info logger.Info, l *splunkLogger, sourceType string, splunkForma
 		url:       l.hec.url,
 	}
 
+	time.Sleep(5 * time.Second)
 	if err := telemClient.tryPostMessages(messageArray); err != nil {
 		logrus.Error(err)
 	}
@@ -641,22 +642,4 @@ func (l *splunkLogger) createSplunkMessage(msg *logger.Message) *splunkMessage {
 	message := *l.nullMessage
 	message.Time = fmt.Sprintf("%f", float64(msg.Timestamp.UnixNano())/float64(time.Second))
 	return &message
-}
-
-func ParseLogTagSource(info logger.Info, defaultTemplate string, splunkField string) (string, error) {
-	tagTemplate := info.Config[splunkField]
-	if tagTemplate == "" {
-		tagTemplate = defaultTemplate
-	}
-
-	tmpl, err := NewParse("log-tag", tagTemplate)
-	if err != nil {
-		return "", err
-	}
-	buf := new(bytes.Buffer)
-	if err := tmpl.Execute(buf, &info); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
 }

@@ -247,7 +247,7 @@ func TestDefault(t *testing.T) {
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
-		splunkLoggerDriver.nullMessage.SourceType != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -272,7 +272,8 @@ func TestDefault(t *testing.T) {
 	}
 
 	if len(hec.messages) != 2 {
-		t.Fatal("Expected two messages")
+		t.Fatalf("Unexpected values of messages: %v", len(hec.messages))
+		//t.Fatal("Expected two messages")
 	}
 
 	if *hec.gzipEnabled {
@@ -283,7 +284,7 @@ func TestDefault(t *testing.T) {
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
 		message1.Source != "" ||
-		message1.SourceType != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -303,7 +304,7 @@ func TestDefault(t *testing.T) {
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
 		message2.Source != "" ||
-		message2.SourceType != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message2)
 	}
@@ -477,7 +478,7 @@ func TestJsonFormat(t *testing.T) {
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
-		splunkLoggerDriver.nullMessage.SourceType != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != true ||
 		splunkLoggerDriver.hec.gzipCompressionLevel != gzip.BestSpeed ||
@@ -510,7 +511,7 @@ func TestJsonFormat(t *testing.T) {
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
 		message1.Source != "" ||
-		message1.SourceType != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -530,7 +531,7 @@ func TestJsonFormat(t *testing.T) {
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
 		message2.Source != "" ||
-		message2.SourceType != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -594,7 +595,7 @@ func TestRawFormat(t *testing.T) {
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
-		splunkLoggerDriver.nullMessage.SourceType != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -627,7 +628,7 @@ func TestRawFormat(t *testing.T) {
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
 		message1.Source != "" ||
-		message1.SourceType != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -644,7 +645,7 @@ func TestRawFormat(t *testing.T) {
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
 		message2.Source != "" ||
-		message2.SourceType != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -708,7 +709,7 @@ func TestRawFormatWithLabels(t *testing.T) {
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
-		splunkLoggerDriver.nullMessage.SourceType != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -741,7 +742,7 @@ func TestRawFormatWithLabels(t *testing.T) {
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
 		message1.Source != "" ||
-		message1.SourceType != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -758,7 +759,7 @@ func TestRawFormatWithLabels(t *testing.T) {
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
 		message2.Source != "" ||
-		message2.SourceType != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -820,7 +821,7 @@ func TestRawFormatWithoutTag(t *testing.T) {
 		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
 		splunkLoggerDriver.nullMessage.Host != hostname ||
 		splunkLoggerDriver.nullMessage.Source != "" ||
-		splunkLoggerDriver.nullMessage.SourceType != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
 		splunkLoggerDriver.nullMessage.Index != "" ||
 		splunkLoggerDriver.hec.gzipCompression != false ||
 		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
@@ -854,7 +855,7 @@ func TestRawFormatWithoutTag(t *testing.T) {
 	if message1.Time != fmt.Sprintf("%f", float64(message1Time.UnixNano())/float64(time.Second)) ||
 		message1.Host != hostname ||
 		message1.Source != "" ||
-		message1.SourceType != "" ||
+		message1.SourceType != "splunk_connect_docker" ||
 		message1.Index != "" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -871,7 +872,7 @@ func TestRawFormatWithoutTag(t *testing.T) {
 	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
 		message2.Host != hostname ||
 		message2.Source != "" ||
-		message2.SourceType != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
 		message2.Index != "" {
 		t.Fatalf("Unexpected values of message 2 %v", message2)
 	}
@@ -1197,7 +1198,7 @@ func TestSkipVerify(t *testing.T) {
 	}
 
 	if len(hec.messages) != defaultStreamChannelSize*4 {
-		t.Fatal("Not all messages delivered %s ")
+		t.Fatal("Not all messages delivered")
 	}
 
 	for i, message := range hec.messages {

@@ -1,5 +1,9 @@
 FROM golang:1.9.2
 
+RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
+
+USER docker
+
 RUN \
   apt-get update && \
   apt-get install -y --no-install-recommends \
