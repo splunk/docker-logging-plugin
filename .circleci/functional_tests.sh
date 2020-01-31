@@ -28,7 +28,7 @@ pip install -r requirements.txt
 deactivate
 
 #Run functional tests from within virtualenv
-sudo venv/bin/python -m pytest \
+sudo venv/bin/python -m pytest --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
    --splunk-user admin \
    --splunk-password notchangeme \
