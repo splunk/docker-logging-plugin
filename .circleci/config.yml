@@ -18,6 +18,11 @@ jobs:
             bash .circleci/unit_tests.sh
 
       - run:
+          name: Update Configuration for functional tests
+          command: |
+            bash .circleci/update_config.sh
+
+      - run:
           name: Run functional tests
           command: |
             bash .circleci/functional_tests.sh

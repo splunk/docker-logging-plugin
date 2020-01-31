@@ -5,8 +5,6 @@ set -e
 
 echo "Running functional tests..."
 
-#sudo su
-
 # Start the plugin
 sudo /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin &
 rm -rf /opt/circleci/.pyenv
