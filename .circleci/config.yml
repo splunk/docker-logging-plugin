@@ -21,4 +21,3 @@ jobs:
           name: Run functional tests
           command: |
             bash .circleci/functional_tests.sh
-
