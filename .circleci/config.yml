@@ -1,0 +1,23 @@
+version: 2
+jobs:
+  build:
+    resource_class: large
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: ~/.go_workspace/src/repo
+    steps:
+      - checkout
+      - run:
+          name: Builder
+          command: |
+            bash .circleci/compile.sh
+
+      - run:
+          name: Run unit tests
+          command: |
+            bash .circleci/unit_tests.sh
+
+      - run:
+          name: Run functional tests
+          command: |
+            bash .circleci/functional_tests.sh

@@ -39,7 +39,7 @@ There are multiple ways to install Splunk Connect for Docker, Splunk recommends 
 
 1. Pull the plugin from docker hub
 ```
-$ docker plugin install splunk/docker-logging-plugin:2.0.1 --alias splunk-logging-plugin
+$ docker plugin install splunk/docker-logging-plugin:2.1.0 --alias splunk-logging-plugin
 ```
 2. Enable the plugin if needed:
 ```
@@ -50,7 +50,7 @@ $ docker plugin enable splunk-logging-plugin
 1. Clone the repository and check out release branch
 ```
 $ git clone  https://github.com/splunk/docker-logging-plugin.git
-$ git checkout release/2.0.1
+$ git checkout release/2.1.0
 ```
 2. Create the plugin package
 ```
@@ -165,6 +165,8 @@ SPLUNK_LOGGING_DRIVER_BUFFER_MAX | The maximum amount of messages to hold in buf
 SPLUNK_LOGGING_DRIVER_CHANNEL_SIZE | How many pending messages can be in the channel used to send messages to background logger worker, which batches them. | 4 * 1000
 SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_HOLD_DURATION | Appends logs that are chunked by docker with 16kb limit. It specifies how long the system can wait for the next message to come. | 100ms 
 SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE	| Appends logs that are chunked by docker with 16kb limit. It specifies the biggest message in bytes that the system can reassemble. The value provided here should be smaller than or equal to the Splunk HEC limit. 1 MB is the default HEC setting. | 1048576 (1mb)
+SPLUNK_LOGGING_DRIVER_JSON_LOGS	| Determines if JSON logging is enabled. https://docs.docker.com/config/containers/logging/json-file/ | true
+SPLUNK_TELEMETRY	| Determines if telemetry is enabled. | true
 
 
 ### Message formats

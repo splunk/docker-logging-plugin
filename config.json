@@ -2,9 +2,9 @@
 	"description": "Splunk Logging Plugin",
 	"documentation": "https://github.com/splunk/docker-logging-plugin",
 	"entrypoint": ["/bin/splunk-logging-plugin"],
-    "network": {
-        "type": "host"
-    },
+	"network": {
+		"type": "host"
+	},
 	"interface": {
 		"types": ["docker.logdriver/1.0"],
 		"socket": "splunklog.sock"
@@ -56,6 +56,18 @@
 			"name": "SPLUNK_LOGGING_DRIVER_TEMP_MESSAGES_BUFFER_SIZE",
 			"description": "Used when logs that are chunked by docker with 16kb limit. Set the biggest message that the system can reassemble.",
 			"value": "1048576",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_LOGGING_DRIVER_JSON_LOGS",
+			"description": "Determines if JSON logging is enabled.",
+			"value": "true",
+			"settable": ["value"]
+		},
+		{
+			"name": "SPLUNK_TELEMETRY",
+			"description": "Determines if telemetry is enabled.",
+			"value": "true",
 			"settable": ["value"]
 		}
 	]
