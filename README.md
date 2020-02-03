@@ -39,7 +39,7 @@ There are multiple ways to install Splunk Connect for Docker, Splunk recommends 
 
 1. Pull the plugin from docker hub
 ```
-$ docker plugin install splunk/docker-logging-plugin:latest --alias splunk-logging-plugin
+$ docker plugin install splunk/docker-logging-plugin:2.0.1 --alias splunk-logging-plugin
 ```
 2. Enable the plugin if needed:
 ```
@@ -50,6 +50,7 @@ $ docker plugin enable splunk-logging-plugin
 1. Clone the repository and check out release branch
 ```
 $ git clone  https://github.com/splunk/docker-logging-plugin.git
+$ git checkout release/2.0.1
 ```
 2. Create the plugin package
 ```
