@@ -1,5 +1,5 @@
 PLUGIN_NAME=splunk/docker-logging-plugin
-PLUGIN_TAG=2.1.0
+PLUGIN_TAG=latest
 PLUGIN_DIR=./splunk-logging-plugin
 
 all: clean docker rootfs create
