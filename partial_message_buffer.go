@@ -37,15 +37,13 @@ type partialMsgBuffer struct {
 
 func (b *partialMsgBuffer) append(l *logdriver.LogEntry) (err error) {
 	// Add msg to temp buffer and disable buffer reset flag
-	if !(b.shouldFlush(time.Now())){
-		ps, err := b.tBuf.Write(l.Line)
-		b.bufferReset = false
-		if err != nil {
-			logrus.WithError(err).WithField("Appending to Temp Buffer with size:", ps).Error(
-				"Error appending to temp buffer")
-			b.reset()
-			return err
-		}
+	ps, err := b.tBuf.Write(l.Line)
+	b.bufferReset = false
+	if err != nil {
+		logrus.WithError(err).WithField("Appending to Temp Buffer with size:", ps).Error(
+			"Error appending to temp buffer")
+		b.reset()
+		return err
 	}
 	return nil
 }
