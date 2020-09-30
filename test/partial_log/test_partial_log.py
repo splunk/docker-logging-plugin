@@ -61,8 +61,8 @@ def test_partial_log(setup, test_input, expected):
 
 
 @pytest.mark.parametrize("test_input, expected", [
-   ([("start", True), ("mid", True), ("end", False)], 2),
-   ([("start2", True), ("new start", False), ("end2", True), ("start3", False), ("new start", True), ("end3", False)], 3)
+   ([("start", True), ("mid", True), ("end", False)], 3),
+   ([("start2", True), ("new start", False), ("end2", True), ("start3", False), ("new start", True), ("end3", False)], 6)
 ])
 def test_partial_log_flush_timeout(setup, test_input, expected):
     '''
@@ -78,7 +78,7 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
 
     file_path = setup["fifo_path"]
 
-    start_log_producer_from_input(file_path, test_input, u_id, 3)
+    start_log_producer_from_input(file_path, test_input, u_id, 10)
     request_start_logging(file_path,
                           setup["splunk_hec_url"],
                           setup["splunk_hec_token"])
