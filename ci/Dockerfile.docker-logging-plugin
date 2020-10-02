@@ -1,0 +1,24 @@
+FROM openkbs/jdk11-mvn-py3
+
+ARG ssh_prv_key
+ARG ssh_pub_key
+ENV ESERV_HOME=/tmp
+
+RUN mkdir -p /workspace
+
+RUN apt-get update && apt-get install -y \
+git openssh-client openssl musl-dev curl \
+make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev
+
+RUN wget -q https://bootstrap.pypa.io/get-pip.py -P / && python get-pip.py && pip install requests && pip install psutil
+
+RUN ssh-keygen -f ${ESERV_HOME}/id_rsa -t rsa -N '' && \
+    cp ${ESERV_HOME}/id_rsa.pub ${ESERV_HOME}/authorized_keys && \
+    chmod 640 ${ESERV_HOME}/authorized_keys
+
+WORKDIR /workspace
+
+ADD run_integration_tests.sh /workspace/run_integration_tests.sh
+
+EXPOSE 9092 8083
+CMD ["/bin/bash", "-c", "/workspace/run_integration_tests.sh"]
