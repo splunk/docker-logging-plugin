@@ -1,0 +1,29 @@
+FROM ubuntu:latest
+
+ENV CI_SPLUNK_USERNAME=
+ENV CI_SPLUNK_PASSWORD=
+ENV SPLUNK_HEC_TOKEN=
+ENV BRANCH_NAME=
+ENV STACK_ID=
+
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+
+RUN mkdir -p /workspace
+
+RUN apt-get update && apt-get install -y \
+    git \
+    openssh-client \
+    openssl \
+    jq \
+    vim \
+    musl-dev \
+    curl \
+    wget \
+    make \
+    build-essential \
+    libncurses5-dev \
+    python3.7 \
+    python3-pip
+
+WORKDIR /workspace
+
