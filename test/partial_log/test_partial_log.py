@@ -21,7 +21,7 @@ import os
 import logging
 from ..common import request_start_logging,  \
     check_events_from_splunk, request_stop_logging, \
-    start_log_producer_from_input, start_log_producer_from_file
+    start_log_producer_from_input, start_log_producer_from_file, kill_logging_plugin
 
 
 @pytest.mark.parametrize("test_input, expected", [
@@ -58,6 +58,8 @@ def test_partial_log(setup, test_input, expected):
                              the last minute with u_id=%s",
                              len(events), u_id)
     assert len(events) == expected
+
+    kill_logging_plugin
 
 
 @pytest.mark.parametrize("test_input, expected", [
@@ -98,6 +100,8 @@ def test_partial_log_flush_timeout(setup, test_input, expected):
                              len(events), u_id)
     assert len(events) == expected
 
+    kill_logging_plugin
+
 
 def test_partial_log_flush_size_limit(setup):
     '''
@@ -133,3 +137,5 @@ def test_partial_log_flush_size_limit(setup):
                              len(events), u_id)
 
     assert len(events) == 2
+
+    kill_logging_plugin
