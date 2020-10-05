@@ -36,7 +36,17 @@ sudo venv/bin/python -m pytest --verbose \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings malformed_data
+   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_not_send
+
+sudo venv/bin/python -m pytest --verbose \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_send
 
 sudo venv/bin/python -m pytest --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
