@@ -26,7 +26,7 @@ from ..common import request_start_logging,  \
 @pytest.mark.parametrize("test_input,expected", [
     ([("", False)], 0)  # should not be sent to splunk
 ])
-def test_malformed_empty_string_not_send_1(setup, test_input, expected):
+def test_malformed_empty_string_1(setup, test_input, expected):
     '''
     Test that the logging plugin can handle various type of input correctly.
     Expected behavior is that:
@@ -63,7 +63,7 @@ def test_malformed_empty_string_not_send_1(setup, test_input, expected):
 @pytest.mark.parametrize("test_input,expected", [
     ([(" ", False)], 0)  # should not be sent to splunk
 ])
-def test_malformed_empty_string_not_send_2(setup, test_input, expected):
+def test_malformed_empty_string_2(setup, test_input, expected):
     '''
     Test that the logging plugin can handle various type of input correctly.
     Expected behavior is that:
@@ -103,7 +103,7 @@ def test_malformed_empty_string_not_send_2(setup, test_input, expected):
                                              # be sent to splunk
 ])
 
-def test_malformed_empty_string_send_1(setup, test_input, expected):
+def test_malformed_empty_string_3(setup, test_input, expected):
     '''
     Test that the logging plugin can handle various type of input correctly.
     Expected behavior is that:
@@ -141,7 +141,7 @@ def test_malformed_empty_string_send_1(setup, test_input, expected):
     ([("hello", False)], 1)  # normal string should always to sent to splunk
 ])
 
-def test_malformed_empty_string_send_2(setup, test_input, expected):
+def test_malformed_empty_string_4(setup, test_input, expected):
     '''
     Test that the logging plugin can handle various type of input correctly.
     Expected behavior is that:
@@ -179,7 +179,7 @@ def test_malformed_empty_string_send_2(setup, test_input, expected):
                                              # be sent to splunk
 ])
 
-def test_malformed_empty_string_send_3(setup, test_input, expected):
+def test_malformed_empty_string_5(setup, test_input, expected):
     '''
     Test that the logging plugin can handle various type of input correctly.
     Expected behavior is that:

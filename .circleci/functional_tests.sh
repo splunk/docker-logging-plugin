@@ -36,7 +36,7 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_not_send_1
+   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_1
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -46,7 +46,7 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_not_send_2
+   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_2
 
 sudo venv/bin/python -m pytest --cache-clear --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -56,7 +56,7 @@ sudo venv/bin/python -m pytest --cache-clear --verbose \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_send_1
+   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_3
 
 sudo venv/bin/python -m pytest --cache-clear --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -66,7 +66,7 @@ sudo venv/bin/python -m pytest --cache-clear --verbose \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_send_2
+   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_4
 
 sudo venv/bin/python -m pytest --cache-clear --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -76,7 +76,7 @@ sudo venv/bin/python -m pytest --cache-clear --verbose \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_send_3
+   -p no:warnings malformed_data/test_malformed_events.py::test_malformed_empty_string_5
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
