@@ -52,7 +52,7 @@ def test_malformed_empty_string(setup, test_input, expected):
                           setup["splunk_hec_token"])
 
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
