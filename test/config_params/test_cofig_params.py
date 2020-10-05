@@ -98,7 +98,7 @@ def test_splunk_index_2(setup, test_input, expected):
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    (None, 1),
+    (None, 1)
 ])
 def test_splunk_source_1(setup, test_input, expected):
     '''
@@ -184,7 +184,7 @@ def test_splunk_source_2(setup, test_input, expected):
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    (None, 1),
+    (None, 1)
 ])
 def test_splunk_source_type_1(setup, test_input, expected):
     '''
@@ -331,7 +331,7 @@ def test_splunk_ca(setup):
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    ("json", 1),
+    ("json", 1)
 ])
 def test_splunk_format_json(setup, test_input, expected):
     '''
@@ -391,7 +391,7 @@ def test_splunk_format_json(setup, test_input, expected):
         assert event == test_string
 
 @pytest.mark.parametrize("test_input,expected", [
-    ("inline", 1),
+    ("inline", 1)
 ])
 def test_splunk_format_inline(setup, test_input, expected):
     '''
@@ -512,7 +512,7 @@ def test_splunk_format_raw(setup, test_input, expected):
 
 
 @pytest.mark.parametrize("test_input, has_exception", [
-    ("true", True),
+    ("true", True)
 ])
 def test_splunk_verify_connection(setup, test_input, has_exception):
     '''
