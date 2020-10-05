@@ -28,7 +28,7 @@ pip install -r requirements.txt
 deactivate
 
 #Run functional tests from within virtualenv
-sudo venv/bin/python -m pytest --cache-clear \
+sudo venv/bin/python -m pytest --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
    --splunk-user admin \
    --splunk-password notchangeme \
@@ -38,7 +38,7 @@ sudo venv/bin/python -m pytest --cache-clear \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
    -p no:warnings partial_log/test_partial_log.py::test_partial_log
 
-sudo venv/bin/python -m pytest --cache-clear \
+sudo venv/bin/python -m pytest --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
    --splunk-user admin \
    --splunk-password notchangeme \
@@ -48,7 +48,7 @@ sudo venv/bin/python -m pytest --cache-clear \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
    -p no:warnings partial_log/test_partial_log.py::test_partial_log_flush_timeout
 
-sudo venv/bin/python -m pytest --cache-clear \
+sudo venv/bin/python -m pytest --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
    --splunk-user admin \
    --splunk-password notchangeme \
@@ -58,7 +58,7 @@ sudo venv/bin/python -m pytest --cache-clear \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
    -p no:warnings partial_log/test_partial_log.py::test_partial_log_flush_size_limit
 
-sudo venv/bin/python -m pytest --cache-clear \
+sudo venv/bin/python -m pytest --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
    --splunk-user admin \
    --splunk-password notchangeme \
@@ -68,7 +68,7 @@ sudo venv/bin/python -m pytest --cache-clear \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
    -p no:warnings malformed_data
 
-sudo venv/bin/python -m pytest --cache-clear --verbose \
+sudo venv/bin/python -m pytest --verbose \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
    --splunk-user admin \
    --splunk-password notchangeme \
