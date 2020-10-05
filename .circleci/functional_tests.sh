@@ -21,7 +21,7 @@ pyenv global 3.7.0
 
 
 sudo pip install --upgrade pip
-pip install virtualenv
+sudo -H pip install virtualenv
 virtualenv --python=python3.5 venv
 source venv/bin/activate
 pip install -r requirements.txt
