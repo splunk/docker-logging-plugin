@@ -56,7 +56,7 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings config_params/test_cofig_params.py::test_splunk_index
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_index_2
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -66,7 +66,7 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings config_params/test_cofig_params.py::test_splunk_source
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_index_2
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -76,7 +76,37 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings config_params/test_cofig_params.py::test_splunk_source_type
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_source_1
+
+sudo venv/bin/python -m pytest --verbose --cache-clear \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_source_2
+
+sudo venv/bin/python -m pytest --verbose --cache-clear \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_source_type_1
+
+sudo venv/bin/python -m pytest --verbose --cache-clear \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_source_type_2
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -96,7 +126,27 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings config_params/test_cofig_params.py::test_splunk_format
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_format_json
+
+sudo venv/bin/python -m pytest --verbose --cache-clear \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_format_inline
+
+sudo venv/bin/python -m pytest --verbose --cache-clear \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings config_params/test_cofig_params.py::test_splunk_format_raw
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \

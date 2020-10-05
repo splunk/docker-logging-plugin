@@ -14,9 +14,50 @@ from ..common import request_start_logging,  \
 @pytest.mark.parametrize("test_input,expected", [
     (None, 1)
 ])
-#    ("history", 1)
 
-def test_splunk_index(setup, test_input, expected):
+def test_splunk_index_1(setup, test_input, expected):
+    '''
+    Test that user specified index can successfully index the
+    log stream from docker. If no index is specified, default
+    index "main" will be used.
+
+    Note that the HEC token on splunk side needs to be configured
+    to accept the specified index.
+    '''
+    logging.getLogger().info("testing test_splunk_index input={0} \
+                expected={1} event(s)".format(test_input, expected))
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test index", False)], u_id)
+
+    index = test_input if test_input else "main"
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"],
+                          options={"splunk-index": index})
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(15)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(index=index,
+                                      id=u_id,
+                                      start_time="-15m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == expected
+
+@pytest.mark.parametrize("test_input,expected", [
+     ("history", 1)
+])
+
+def test_splunk_index_2(setup, test_input, expected):
     '''
     Test that user specified index can successfully index the
     log stream from docker. If no index is specified, default
@@ -55,11 +96,53 @@ def test_splunk_index(setup, test_input, expected):
     assert len(events) == expected
 
 
+
 @pytest.mark.parametrize("test_input,expected", [
     (None, 1),
+])
+def test_splunk_source_1(setup, test_input, expected):
+    '''
+    Test that docker logs can be indexed with the specified
+    source successfully. If no source is specified, the default
+    source from docker is used
+    '''
+
+    logging.getLogger().info("testing test_splunk_source input={0} \
+                expected={1} event(s)".format(test_input, expected))
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test source", False)], u_id)
+
+    options = {}
+    if test_input:
+        options = {"splunk-source": test_input}
+
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"],
+                          options=options)
+
+    source = test_input if test_input else "*"
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(15)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(id="source={0} {1}".format(source, u_id),
+                                      start_time="-15m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == expected
+
+@pytest.mark.parametrize("test_input,expected", [
     ("test_source", 1)
 ])
-def test_splunk_source(setup, test_input, expected):
+def test_splunk_source_2(setup, test_input, expected):
     '''
     Test that docker logs can be indexed with the specified
     source successfully. If no source is specified, the default
@@ -99,11 +182,54 @@ def test_splunk_source(setup, test_input, expected):
     assert len(events) == expected
 
 
+
 @pytest.mark.parametrize("test_input,expected", [
     (None, 1),
+])
+def test_splunk_source_type_1(setup, test_input, expected):
+    '''
+    Test that docker logs can be indexed with the specified
+    sourcetype successfully. If no source is specified, the default
+    "splunk_connect_docker" is used
+    '''
+
+    logging.getLogger().info("testing test_splunk_source_type input={0} \
+                expected={1} event(s)".format(test_input, expected))
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    start_log_producer_from_input(file_path, [("test source", False)], u_id)
+
+    options = {}
+    if test_input:
+        options = {"splunk-sourcetype": test_input}
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"],
+                          options=options)
+
+    sourcetype = test_input if test_input else "splunk_connect_docker"
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(15)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(id="sourcetype={0} {1}"
+                                         .format(sourcetype, u_id),
+                                      start_time="-15m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == expected
+
+@pytest.mark.parametrize("test_input,expected", [
     ("test_source_type", 1)
 ])
-def test_splunk_source_type(setup, test_input, expected):
+def test_splunk_source_type_2(setup, test_input, expected):
     '''
     Test that docker logs can be indexed with the specified
     sourcetype successfully. If no source is specified, the default
@@ -206,10 +332,128 @@ def test_splunk_ca(setup):
 
 @pytest.mark.parametrize("test_input,expected", [
     ("json", 1),
+])
+def test_splunk_format_json(setup, test_input, expected):
+    '''
+    Test that different splunk format: json, raw, inline can be handled
+    correctly.
+
+    json: tries to parse the given message in to a json object and send both
+          source and log message to splunk
+    inline: treats the given message as a string and wrap it in a json object
+            with source and send the json string to splunk
+    raw: sends the raw message to splunk
+    '''
+    logging.getLogger().info("testing test_splunk_format input={0} \
+                expected={1} event(s)".format(test_input, expected))
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    test_string = '{"test": true, "id": "' + u_id + '"}'
+    start_log_producer_from_input(file_path, [(test_string, False)], u_id)
+
+    options = {}
+    if test_input:
+        options = {"splunk-format": test_input}
+
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"],
+                          options=options)
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(15)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(id=u_id,
+                                      start_time="-15m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == expected
+
+    event = events[0]["_raw"]
+    if test_input == "json" or test_input == "inline":
+        try:
+            parsed_event = json.loads(event)
+        except Exception:
+            pytest.fail("{0} can't be parsed to json"
+                        .format(event))
+            if test_input == "json":
+                assert parsed_event["line"] == json.loads(test_string)
+            elif test_input == "inline":
+                assert parsed_event["line"] == test_string
+    elif test_input == "raw":
+        assert event == test_string
+
+@pytest.mark.parametrize("test_input,expected", [
     ("inline", 1),
+])
+def test_splunk_format_inline(setup, test_input, expected):
+    '''
+    Test that different splunk format: json, raw, inline can be handled
+    correctly.
+
+    json: tries to parse the given message in to a json object and send both
+          source and log message to splunk
+    inline: treats the given message as a string and wrap it in a json object
+            with source and send the json string to splunk
+    raw: sends the raw message to splunk
+    '''
+    logging.getLogger().info("testing test_splunk_format input={0} \
+                expected={1} event(s)".format(test_input, expected))
+    u_id = str(uuid.uuid4())
+
+    file_path = setup["fifo_path"]
+    test_string = '{"test": true, "id": "' + u_id + '"}'
+    start_log_producer_from_input(file_path, [(test_string, False)], u_id)
+
+    options = {}
+    if test_input:
+        options = {"splunk-format": test_input}
+
+    request_start_logging(file_path,
+                          setup["splunk_hec_url"],
+                          setup["splunk_hec_token"],
+                          options=options)
+
+    # wait for 10 seconds to allow messages to be sent
+    time.sleep(15)
+    request_stop_logging(file_path)
+
+    # check that events get to splunk
+    events = check_events_from_splunk(id=u_id,
+                                      start_time="-15m@m",
+                                      url=setup["splunkd_url"],
+                                      user=setup["splunk_user"],
+                                      password=setup["splunk_password"])
+    logging.getLogger().info("Splunk received %s events in the last minute" +
+                             " with u_id=%s",
+                             len(events), u_id)
+    assert len(events) == expected
+
+    event = events[0]["_raw"]
+    if test_input == "json" or test_input == "inline":
+        try:
+            parsed_event = json.loads(event)
+        except Exception:
+            pytest.fail("{0} can't be parsed to json"
+                        .format(event))
+            if test_input == "json":
+                assert parsed_event["line"] == json.loads(test_string)
+            elif test_input == "inline":
+                assert parsed_event["line"] == test_string
+    elif test_input == "raw":
+        assert event == test_string
+
+@pytest.mark.parametrize("test_input,expected", [
     ("raw", 1)
 ])
-def test_splunk_format(setup, test_input, expected):
+def test_splunk_format_raw(setup, test_input, expected):
     '''
     Test that different splunk format: json, raw, inline can be handled
     correctly.
