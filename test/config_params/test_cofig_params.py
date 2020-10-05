@@ -12,9 +12,10 @@ from ..common import request_start_logging,  \
 
 
 @pytest.mark.parametrize("test_input,expected", [
-    (None, 1),
-    ("history", 1)
+    (None, 1)
 ])
+#    ("history", 1)
+
 def test_splunk_index(setup, test_input, expected):
     '''
     Test that user specified index can successfully index the
