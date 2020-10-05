@@ -38,7 +38,7 @@ def test_splunk_index(setup, test_input, expected):
                           options={"splunk-index": index})
 
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
@@ -83,7 +83,7 @@ def test_splunk_source(setup, test_input, expected):
 
     source = test_input if test_input else "*"
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
@@ -127,7 +127,7 @@ def test_splunk_source_type(setup, test_input, expected):
     sourcetype = test_input if test_input else "splunk_connect_docker"
 
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
@@ -188,7 +188,7 @@ def test_splunk_ca(setup):
                           options=options)
 
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
@@ -237,7 +237,7 @@ def test_splunk_format(setup, test_input, expected):
                           options=options)
 
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
@@ -327,7 +327,7 @@ def test_splunk_gzip(setup, test_input, has_exception):
 
     if not has_exception:
         # wait for 10 seconds to allow messages to be sent
-        time.sleep(30)
+        time.sleep(10)
         request_stop_logging(file_path)
 
         # check that events get to splunk
@@ -360,7 +360,7 @@ def test_splunk_tag(setup):
                           options=options)
 
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     # check that events get to splunk
@@ -395,7 +395,7 @@ def test_splunk_telemety(setup):
                               options=options)
 
     # wait for 10 seconds to allow messages to be sent
-    time.sleep(30)
+    time.sleep(10)
     request_stop_logging(file_path)
 
     index = "_introspection"
