@@ -256,7 +256,7 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings partial_log/test_partial_log.py::test_partial_log
+   -p no:warnings partial_log/test_partial_log.py::test_partial_log_1
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
@@ -266,7 +266,27 @@ sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunk-hec-token $SPLUNK_HEC_TOKEN \
    --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
    --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
-   -p no:warnings partial_log/test_partial_log.py::test_partial_log_flush_timeout
+   -p no:warnings partial_log/test_partial_log.py::test_partial_log_2
+
+sudo venv/bin/python -m pytest --verbose --cache-clear \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings partial_log/test_partial_log.py::test_partial_log_flush_timeout_1
+
+sudo venv/bin/python -m pytest --verbose --cache-clear \
+   --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
+   --splunk-user admin \
+   --splunk-password notchangeme \
+   --splunk-hec-url https://$SPLUNK_HEC_HOST:8088 \
+   --splunk-hec-token $SPLUNK_HEC_TOKEN \
+   --docker-plugin-path /home/circleci/.go_workspace/src/repo/splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
+   --fifo-path /home/circleci/.go_workspace/src/repo/pipe \
+   -p no:warnings partial_log/test_partial_log.py::test_partial_log_flush_timeout_2
 
 sudo venv/bin/python -m pytest --verbose --cache-clear \
    --splunkd-url https://$SPLUNK_HEC_HOST:8089 \
