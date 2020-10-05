@@ -98,7 +98,7 @@ def test_malformed_empty_string_2(setup, test_input, expected):
     assert len(events) == expected
 
 @pytest.mark.parametrize("test_input,expected", [
-    ([("\xF0\xA4\xAD", False)] 1),  # non utf-8 decodable chars
+    ([("\xF0\xA4\xAD", False)], 1)  # non utf-8 decodable chars
                                      # should make it to splunk
                                              # be sent to splunk
 ])
