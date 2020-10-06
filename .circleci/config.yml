@@ -18,6 +18,16 @@ jobs:
             bash .circleci/unit_tests.sh
 
       - run:
-          name: Run functional tests
+          name: Run functional tests partial log
           command: |
-            bash .circleci/functional_tests.sh
+            bash .circleci/functional_tests_partial.sh
+
+      - run:
+          name: Run functional tests config params
+          command: |
+            bash .circleci/functional_tests_config.sh
+
+      - run:
+          name: Run functional tests malformed data
+          command: |
+            bash .circleci/functional_tests_malformed.sh
