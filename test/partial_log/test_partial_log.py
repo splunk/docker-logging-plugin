@@ -43,8 +43,8 @@ def test_partial_log_1(setup, test_input, expected):
                           setup["splunk_hec_url"],
                           setup["splunk_hec_token"])
 
-    # wait for 10 seconds to allow messages to be sent
-    time.sleep(10)
+    # wait for 15 seconds to allow messages to be sent
+    time.sleep(15)
     request_stop_logging(file_path)
 
     # check that events get to splunk
@@ -79,8 +79,8 @@ def test_partial_log_2(setup, test_input, expected):
                           setup["splunk_hec_url"],
                           setup["splunk_hec_token"])
 
-    # wait for 10 seconds to allow messages to be sent
-    time.sleep(10)
+    # wait for 15 seconds to allow messages to be sent
+    time.sleep(15)
     request_stop_logging(file_path)
 
     # check that events get to splunk
