@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    resource_class: large
+    resource_class: meduim
     machine:
       image: ubuntu-1604:201903-01
     working_directory: ~/.go_workspace/src/repo
