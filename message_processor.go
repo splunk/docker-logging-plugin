@@ -88,6 +88,16 @@ func (mg messageProcessor) consumeLog(lf *logPair) {
 				logrus.Debug("First messaging, reseting timer")
 				tmpBuf.bufferTimer = time.Now()
 			}
+			// Clear the buffer prior to appending if it should be flushed based on time
+			if tmpBuf.hasHoldDurationExpired(time.Now()){
+
+				mg.sendMessage(lf.splunkl, &buf, tmpBuf, lf.info.ContainerID)
+				if jsonLogs {
+					mg.sendMessage(lf.jsonl, &buf, tmpBuf, lf.info.ContainerID)
+				}
+				//temp buffer and values reset
+				tmpBuf.reset()
+			}
 			// Append to temp buffer
 			if err := tmpBuf.append(&buf); err == nil {
 				// Send message to splunk and also json logger if enabled

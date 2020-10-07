@@ -114,7 +114,7 @@ def test_partial_log_flush_timeout_1(setup, test_input, expected):
 
     file_path = setup["fifo_path"]
 
-    start_log_producer_from_input(file_path, test_input, u_id, 10)
+    start_log_producer_from_input(file_path, test_input, u_id, 3)
     request_start_logging(file_path,
                           setup["splunk_hec_url"],
                           setup["splunk_hec_token"])
@@ -153,7 +153,7 @@ def test_partial_log_flush_timeout_2(setup, test_input, expected):
 
     file_path = setup["fifo_path"]
 
-    start_log_producer_from_input(file_path, test_input, u_id, 10)
+    start_log_producer_from_input(file_path, test_input, u_id, 3)
     request_start_logging(file_path,
                           setup["splunk_hec_url"],
                           setup["splunk_hec_token"])
