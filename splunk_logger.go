@@ -121,6 +121,10 @@ type splunkLoggerJSON struct {
 	*splunkLoggerInline
 }
 
+type splunkLoggerHEC struct {
+	*splunkLoggerInline
+}
+
 type splunkLoggerRaw struct {
 	*splunkLogger
 
@@ -128,13 +132,14 @@ type splunkLoggerRaw struct {
 }
 
 type splunkMessage struct {
-	Event      interface{} `json:"event"`
-	Time       string      `json:"time"`
-	Host       string      `json:"host"`
-	Source     string      `json:"source,omitempty"`
-	SourceType string      `json:"sourcetype,omitempty"`
-	Index      string      `json:"index,omitempty"`
-	Entity     string      `json:"entity,omitempty"`
+	Event      interface{}       `json:"event"`
+	Time       string            `json:"time"`
+	Host       string            `json:"host"`
+	Source     string            `json:"source,omitempty"`
+	SourceType string            `json:"sourcetype,omitempty"`
+	Index      string            `json:"index,omitempty"`
+	Fields     map[string]string `json:"fields,omitempty"`
+	Entity     string            `json:"entity,omitempty"`
 }
 
 type splunkMessageEvent struct {
@@ -148,6 +153,7 @@ const (
 	splunkFormatRaw    = "raw"
 	splunkFormatJSON   = "json"
 	splunkFormatInline = "inline"
+	splunkFormatHEC    = "hec"
 )
 
 /*
@@ -302,8 +308,9 @@ func New(info logger.Info) (logger.Logger, error) {
 		case splunkFormatInline:
 		case splunkFormatJSON:
 		case splunkFormatRaw:
+		case splunkFormatHEC:
 		default:
-			return nil, fmt.Errorf("unknown format specified %s, supported formats are inline, json and raw", splunkFormat)
+			return nil, fmt.Errorf("unknown format specified %s, supported formats are inline, json, hec and raw", splunkFormat)
 		}
 		splunkFormat = splunkFormatParsed
 	} else {
@@ -327,6 +334,13 @@ func New(info logger.Info) (logger.Logger, error) {
 		}
 
 		loggerWrapper = &splunkLoggerJSON{&splunkLoggerInline{logger, nullEvent}}
+	case splunkFormatHEC:
+		nullEvent := &splunkMessageEvent{
+			Tag:   tag,
+			Attrs: attrs,
+		}
+
+		loggerWrapper = &splunkLoggerHEC{&splunkLoggerInline{logger, nullEvent}}
 	case splunkFormatRaw:
 		var prefix bytes.Buffer
 		if tag != "" {
@@ -418,7 +432,7 @@ func parseURL(info logger.Info) (*url.URL, error) {
 }
 
 /*
- parseURL() makes sure that the URL is the format of: scheme://dns_name_or_ip:port
+parseURL() makes sure that the URL is the format of: scheme://dns_name_or_ip:port
 */
 func composeHealthCheckURL(splunkURL *url.URL) string {
 	return splunkURL.Scheme + "://" + splunkURL.Host + "/services/collector/health"
@@ -491,6 +505,22 @@ func (l *splunkLoggerJSON) Log(msg *logger.Message) error {
 	event.Source = msg.Source
 
 	message.Event = &event
+	logger.PutMessage(msg)
+	return l.queueMessageAsync(message)
+}
+
+func (l *splunkLoggerHEC) Log(msg *logger.Message) error {
+	message := l.createSplunkMessage(msg)
+	event := *l.nullEvent
+
+	if err := json.Unmarshal(msg.Line, &message); err == nil {
+		message.Fields = event.Attrs
+	} else {
+		event.Line = string(msg.Line)
+		event.Source = msg.Source
+		message.Event = &event
+	}
+
 	logger.PutMessage(msg)
 	return l.queueMessageAsync(message)
 }
