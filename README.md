@@ -169,7 +169,7 @@ SPLUNK_TELEMETRY	| Determines if telemetry is enabled. | true
 
 
 ### Message formats
-There are three logging plug-in messaging formats set under the optional variable splunk-format:
+There are four logging plug-in messaging formats set under the optional variable splunk-format:
 
 * inline (this is the default format) 
 * json
