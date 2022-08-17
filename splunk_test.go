@@ -567,11 +567,18 @@ func TestHECFormat(t *testing.T) {
 			splunkFormatKey:               splunkFormatHEC,
 			splunkGzipCompressionKey:      "true",
 			splunkGzipCompressionLevelKey: "1",
+			tagKey:                        "{{.ImageName}}/{{.Name}}",
+			labelsKey:                     "a",
+			envRegexKey:                   "^foo",
 		},
 		ContainerID:        "containeriid",
 		ContainerName:      "/container_name",
 		ContainerImageID:   "contaimageid",
 		ContainerImageName: "container_image_name",
+		ContainerLabels: map[string]string{
+			"a": "b",
+		},
+		ContainerEnv: []string{"foo_finder=bar"},
 	}
 
 	hostname, err := info.Hostname()
@@ -632,6 +639,9 @@ func TestHECFormat(t *testing.T) {
 		message1.Host != "container_host" ||
 		message1.Source != "container_source" ||
 		message1.SourceType != "custom_sourcetype" ||
+		message1.Fields["a"] != "b" ||
+		message1.Fields["container_tag"] != "container_image_name/container_name" ||
+		message1.Fields["foo_finder"] != "bar" ||
 		message1.Index != "custom_index" {
 		t.Fatalf("Unexpected values of message 1 %v", message1)
 	}
@@ -651,8 +661,10 @@ func TestHECFormat(t *testing.T) {
 	} else {
 		if event["line"] != "nothec" ||
 			event["source"] != "stdout" ||
-			event["tag"] != "containeriid" ||
-			len(event) != 3 {
+			event["tag"] != "container_image_name/container_name" ||
+			event["attrs"].(map[string]interface{})["a"] != "b" ||
+			event["attrs"].(map[string]interface{})["foo_finder"] != "bar" ||
+			len(event) != 4 {
 			t.Fatalf("Unexpected event in message 2 %v", event)
 		}
 	}

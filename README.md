@@ -228,7 +228,7 @@ To format messages as json objects, set --log-opt splunk-format=json. The plug-i
     }
 }
 ```
-If your log messages are already in the format expected by the Splunk HEC endpoint,  set --log-opt splunk-format=hec. The plug-in will try to parse every line as a JSON object to match the expected structure for the Splunk HEC endpoint. Labels or environment variables specified in the log options will be added as additional fields for Splunk to index. If it cannot parse the message, it is sent inline. For example:
+If your log messages are already in the format expected by the Splunk HEC endpoint,  set --log-opt splunk-format=hec. The plug-in will try to parse every line as a JSON object to match the expected structure for the Splunk HEC endpoint. Labels or environment variables specified in the log options will be added as additional fields for Splunk to index. If a tag is specified e.g. --log-opt tag="{{.ID}}" this will be added as an additional field named "container_tag" for Splunk to index. If it cannot parse the message, it is sent inline. For example:
 ```
 //Example #1
 {"event": "my message", "time": "1660656993.605501", "index": "myindex", "source": "mysource", "sourcetype": "mysourcetype", "host": "myhost" }

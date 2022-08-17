@@ -514,7 +514,17 @@ func (l *splunkLoggerHEC) Log(msg *logger.Message) error {
 	event := *l.nullEvent
 
 	if err := json.Unmarshal(msg.Line, &message); err == nil {
-		message.Fields = event.Attrs
+		fields := make(map[string]string)
+		for k, v := range message.Fields {
+			fields[k] = v
+		}
+		for k, v := range event.Attrs {
+			fields[k] = v
+		}
+		if event.Tag != "" {
+			fields["container_tag"] = event.Tag
+		}
+		message.Fields = fields
 	} else {
 		event.Line = string(msg.Line)
 		event.Source = msg.Source
