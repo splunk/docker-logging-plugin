@@ -10,6 +10,7 @@ setup-venv:
 
 setup-splunk:
 	docker compose up -d
+	./wait-for-splunk.sh
 
 test-partial:
 	$(foreach var,$(PARTIAL_TESTS),sudo venv/bin/python -m pytest --cache-clear \
@@ -20,7 +21,7 @@ test-partial:
 	--splunk-hec-token abcd1234 \
 	--docker-plugin-path ../splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
 	--fifo-path /tmp/pipe \
-	-p no:warnings partial_log/test_partial_log.py::$(var);)
+	-p no:warnings partial_log/test_partial_log.py::$(var) || exit;)
 
 test-config:
 	$(foreach var,$(CONFIG_TESTS),sudo venv/bin/python -m pytest --cache-clear \
@@ -31,7 +32,7 @@ test-config:
 	--splunk-hec-token abcd1234 \
 	--docker-plugin-path ../splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
 	--fifo-path /tmp/pipe \
-	-p no:warnings config_params/test_cofig_params.py::$(var);)
+	-p no:warnings config_params/test_cofig_params.py::$(var) || exit;)
 
 test-malformed:
 	$(foreach var,$(MALFORMED_TESTS),sudo venv/bin/python -m pytest --cache-clear \
@@ -42,4 +43,4 @@ test-malformed:
 	--splunk-hec-token abcd1234 \
 	--docker-plugin-path ../splunk-logging-plugin/rootfs/bin/splunk-logging-plugin \
 	--fifo-path /tmp/pipe \
-	-p no:warnings malformed_data/test_malformed_events.py::$(var);)
+	-p no:warnings malformed_data/test_malformed_events.py::$(var) || exit;)
