@@ -6,9 +6,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
           go-version: '>=1.19.0'
-      - name: Unit tests
+
+      - name: Install Python 3.8
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.8
+
+      - name: Update apt repositories
+        run: sudo apt update
+
+      - name: Upgrade python packaging tools
+        run: python -m pip install --upgrade pip setuptools wheel
+
+      - name: Compile
+        run: make
+
+      - name: Run unit tests
         run: make test
+
+      - name: Setup dependencies
+        run: cd test && make setup-venv && make setup-splunk
+
+      - name: Run functional tests partial log
+        run: cd test && make test-partial
+
+      - name: Run functional tests config params
+        run: cd test && make test-config
+
+      - name: Run functional tests malformed data
+        run: cd test && make test-malformed
