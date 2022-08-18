@@ -5,12 +5,12 @@
 * Python version must be > 3.x
 
 # Testing Instructions
-0. (Optional) Use a virtual environment for the test  
-    `virtualenv --python=python3.6 venv`  
-    `source venv/bin/activate`
-1. Install the dependencies  
-    `pip install -r requirements.txt`  
-2. Start the test with the required options configured  
+0. Make sure all commands below are run from within the test directory
+1. Install the dependencies in a virtual environment 
+    `make setup-venv`  
+2. Run Splunk within a Docker container if required
+    `make setup-splunk`
+4. Start the test with the required options configured  
     `python -m pytest <options>`  
 
     **Options are:**  
