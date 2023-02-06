@@ -141,7 +141,7 @@ splunk-index | Event index. (Note that HEC token must be configured to accept th
 splunk-capath | Path to root certificate. (Must be specified if splunk-insecureskipverify is false) | 
 splunk-caname | Name to use for validating server certificate; by default the hostname of the splunk-url is used. | 	
 splunk-insecureskipverify| "false" means that the service certificates are validated and "true" means that server certificates are not validated. | false
-splunk-format | Message format. Values can be inline, json, or raw. For more infomation about formats see the Messageformats option. | inline
+splunk-format | Message format. Values can be inline, json, hec or raw. For more infomation about formats see the Messageformats option. | inline
 splunk-verify-connection| Upon plug-in startup, verify that Splunk Connect for Docker can connect to Splunk HEC endpoint. False indicates that Splunk Connect for Docker will start up and continue to try to connect to HEC and will push logs to buffer until connection has been establised. Logs will roll off buffer once buffer is full. True indicates that Splunk Connect for Docker will not start up if connection to HEC cannot be established. | false
 splunk-gzip | Enable/disable gzip compression to send events to Splunk Enterprise or Splunk Cloud instance. | false
 splunk-gzip-level | Set compression level for gzip. Valid values are -1 (default), 0 (no compression), 1 (best speed) … 9 (best compression). | -1
@@ -169,10 +169,11 @@ SPLUNK_TELEMETRY	| Determines if telemetry is enabled. | true
 
 
 ### Message formats
-There are three logging plug-in messaging formats set under the optional variable splunk-format:
+There are four logging plug-in messaging formats set under the optional variable splunk-format:
 
 * inline (this is the default format) 
 * json
+* hec
 * raw
 
 The default format is inline, where each log message is embedded as a string and is assigned to "line" field. For example:
@@ -226,6 +227,14 @@ To format messages as json objects, set --log-opt splunk-format=json. The plug-i
         "foo": "bar"
     }
 }
+```
+If your log messages are already in the format expected by the Splunk HEC endpoint,  set --log-opt splunk-format=hec. The plug-in will try to parse every line as a JSON object to match the expected structure for the Splunk HEC endpoint. Labels or environment variables specified in the log options will be added as additional fields for Splunk to index. If a tag is specified e.g. --log-opt tag="{{.ID}}" this will be added as an additional field named "container_tag" for Splunk to index. If it cannot parse the message, it is sent inline. For example:
+```
+//Example #1
+{"event": "my message", "time": "1660656993.605501", "index": "myindex", "source": "mysource", "sourcetype": "mysourcetype", "host": "myhost" }
+
+//Example #2
+{ "event": { "foo": "bar" }, "time": "1660656993.605501", "index": "myindex", "source": "mysource", "sourcetype": "mysourcetype", "host": "myhost" }
 ```
 If --log-opt splunk-format=raw, each message together with attributes (environment variables and labels) and tags are combined in a raw string. Attributes and tags are prefixed to the message. For example:
 ```

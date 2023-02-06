@@ -2,6 +2,8 @@ PLUGIN_NAME=splunk/docker-logging-plugin
 PLUGIN_TAG=latest
 PLUGIN_DIR=./splunk-logging-plugin
 
+.PHONY: test
+
 all: clean docker rootfs create
 package: clean docker rootfs zip
 
@@ -39,3 +41,7 @@ enable:
 push: clean docker rootfs create enable
 	@echo "### push plugin ${PLUGIN_NAME}:${PLUGIN_TAG}"
 	docker plugin push ${PLUGIN_NAME}:${PLUGIN_TAG}
+
+test:
+	@echo "### running unit tests"
+	go test

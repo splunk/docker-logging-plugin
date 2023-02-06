@@ -83,7 +83,7 @@ func TestNewMissedUrl(t *testing.T) {
 	}
 }
 
-//splunk-url needs to be in the format of scheme://dns_name_or_ip<:port>
+// splunk-url needs to be in the format of scheme://dns_name_or_ip<:port>
 func TestUrlFormat(t *testing.T) {
 	info := logger.Info{
 		Config: map[string]string{
@@ -544,6 +544,127 @@ func TestJsonFormat(t *testing.T) {
 			event["source"] != "stdout" ||
 			event["tag"] != "containeriid" ||
 			len(event) != 3 {
+			t.Fatalf("Unexpected event in message 2 %v", event)
+		}
+	}
+
+	err = hec.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Verify HEC format
+func TestHECFormat(t *testing.T) {
+	hec := NewHTTPEventCollectorMock(t)
+
+	go hec.Serve()
+
+	info := logger.Info{
+		Config: map[string]string{
+			splunkURLKey:                  hec.URL(),
+			splunkTokenKey:                hec.token,
+			splunkFormatKey:               splunkFormatHEC,
+			splunkGzipCompressionKey:      "true",
+			splunkGzipCompressionLevelKey: "1",
+			tagKey:                        "{{.ImageName}}/{{.Name}}",
+			labelsKey:                     "a",
+			envRegexKey:                   "^foo",
+		},
+		ContainerID:        "containeriid",
+		ContainerName:      "/container_name",
+		ContainerImageID:   "contaimageid",
+		ContainerImageName: "container_image_name",
+		ContainerLabels: map[string]string{
+			"a": "b",
+		},
+		ContainerEnv: []string{"foo_finder=bar"},
+	}
+
+	hostname, err := info.Hostname()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	loggerDriver, err := New(info)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if hec.connectionVerified {
+		t.Fatal("By default connection should not be verified")
+	}
+
+	splunkLoggerDriver, ok := loggerDriver.(*splunkLoggerHEC)
+	if !ok {
+		t.Fatal("Unexpected Splunk Logging Driver type")
+	}
+
+	if splunkLoggerDriver.hec.url != hec.URL()+"/services/collector/event/1.0" ||
+		splunkLoggerDriver.hec.auth != "Splunk "+hec.token ||
+		splunkLoggerDriver.nullMessage.Host != hostname ||
+		splunkLoggerDriver.nullMessage.Source != "" ||
+		splunkLoggerDriver.nullMessage.SourceType != "splunk_connect_docker" ||
+		splunkLoggerDriver.nullMessage.Index != "" ||
+		splunkLoggerDriver.hec.gzipCompression != true ||
+		splunkLoggerDriver.hec.gzipCompressionLevel != gzip.BestSpeed ||
+		splunkLoggerDriver.hec.postMessagesFrequency != defaultPostMessagesFrequency ||
+		splunkLoggerDriver.hec.postMessagesBatchSize != defaultPostMessagesBatchSize ||
+		splunkLoggerDriver.hec.bufferMaximum != defaultBufferMaximum ||
+		cap(splunkLoggerDriver.stream) != defaultStreamChannelSize {
+		t.Fatal("Values do not match configuration.")
+	}
+
+	message1Time := time.Now()
+	if err := loggerDriver.Log(&logger.Message{Line: []byte("{\"event\":\"test message\", \"time\": \"1659644859\", \"host\": \"container_host\", \"source\": \"container_source\", \"index\": \"custom_index\", \"sourcetype\": \"custom_sourcetype\"}"), Source: "stdout", Timestamp: message1Time}); err != nil {
+		t.Fatal(err)
+	}
+	message2Time := time.Now()
+	if err := loggerDriver.Log(&logger.Message{Line: []byte("nothec"), Source: "stdout", Timestamp: message2Time}); err != nil {
+		t.Fatal(err)
+	}
+
+	err = loggerDriver.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(hec.messages) != 2 {
+		t.Fatal("Expected two messages")
+	}
+
+	message1 := hec.messages[0]
+	if message1.Event != "test message" ||
+		message1.Time != "1659644859" ||
+		message1.Host != "container_host" ||
+		message1.Source != "container_source" ||
+		message1.SourceType != "custom_sourcetype" ||
+		message1.Fields["a"] != "b" ||
+		message1.Fields["container_tag"] != "container_image_name/container_name" ||
+		message1.Fields["foo_finder"] != "bar" ||
+		message1.Index != "custom_index" {
+		t.Fatalf("Unexpected values of message 1 %v", message1)
+	}
+
+	message2 := hec.messages[1]
+	if message2.Time != fmt.Sprintf("%f", float64(message2Time.UnixNano())/float64(time.Second)) ||
+		message2.Host != hostname ||
+		message2.Source != "" ||
+		message2.SourceType != "splunk_connect_docker" ||
+		message2.Index != "" {
+		t.Fatalf("Unexpected values of message 2 %v", message2)
+	}
+
+	// If message cannot be parsed as JSON - it should be sent as a line
+	if event, err := message2.EventAsMap(); err != nil {
+		t.Fatal(err)
+	} else {
+		if event["line"] != "nothec" ||
+			event["source"] != "stdout" ||
+			event["tag"] != "container_image_name/container_name" ||
+			event["attrs"].(map[string]interface{})["a"] != "b" ||
+			event["attrs"].(map[string]interface{})["foo_finder"] != "bar" ||
+			len(event) != 4 {
 			t.Fatalf("Unexpected event in message 2 %v", event)
 		}
 	}
